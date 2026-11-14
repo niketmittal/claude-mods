@@ -11,6 +11,7 @@ Know how long Claude's current work will take, so you can wait, step away, or st
 - **Advice on what to do with the wait:** under 1 minute, wait; 1–5 minutes, start a side task or take a short break; over 5 minutes, go do something else.
 - **Corrects itself over time.** It compares each turn's real time to the quick guess and to Claude's first estimate, separately, and stretches or shrinks later estimates to match.
 - **Notifies you** when a turn that took more than 90 seconds finishes.
+- **Every subagent gets its own line:** when Claude (or you) starts subagents, each shows its type, task and its own ETA (a quick guess at once, then the subagent's own estimate), plus when everything will be done.
 - **Side tasks:** type `side: <task>` while Claude is busy. It runs in a background agent without touching the main conversation, and you get a notification with the result when it's done. `/side <task>` works too, though typed mid-turn it may wait until the turn ends.
 
 ## Install

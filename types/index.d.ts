@@ -1,14 +1,17 @@
 export type EstimateSource = 'quick' | 'claude'
 
-export type Run = {
-  turnId: string
-  startedAt: number
+export type Eta = {
   source: EstimateSource | null
   estimateMs: number | null
   estimatedAt: number | null
   step: number | null
   steps: number | null
   label: string | null
+}
+
+export type Run = Eta & {
+  turnId: string
+  startedAt: number
   quickMs: number | null
   firstClaudeMs: number | null
   firstClaudeAt: number | null
@@ -16,7 +19,7 @@ export type Run = {
 
 export type Factors = { quick: number; claude: number }
 
-export type Side = { id: string; task: string; startedAt: number }
+export type Agent = Eta & { id: string; task: string; kind: string; isSide: boolean; startedAt: number }
 
 declare module 'claude-code' {
   interface PluginState {
@@ -24,7 +27,7 @@ declare module 'claude-code' {
       run: Run | null
       now: number
       factors: Factors
-      sides: Side[]
+      agents: Agent[]
       isHidden: boolean
     }
   }

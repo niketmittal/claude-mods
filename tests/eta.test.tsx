@@ -22,6 +22,8 @@ const engineBottom = (on: On, quickReply: string | null) => {
   on('turn.complete', ($, e) => ({ text: e.answer }))
   on('ui.notify', () => ({ value: { isSent: true, channel: 'terminal_bell' } }) as const)
   on('session.messages', () => ({ value: [] }))
+  on('agent.list', () => ({ value: [] }))
+  on('agent.spawn', ($, e) => ({ model: 'haiku', agentId: e.description === 'find auth code' ? 'a1' : 'a2' }))
   on('model.complete', () => ({
     value: quickReply === null ? { isAnswered: false, reason: 'empty-reply', usage: USAGE } : { isAnswered: true, text: quickReply, usage: USAGE },
   }) as never)
@@ -76,4 +78,24 @@ test('past overruns stretch Claude estimates', async ($, on) => {
   await $.tool.call({ tool: 'mcp__eta__estimate', minutes: 10 } as never)
   await clock.advance(60_000)
   await expectBand($, [/~19m00s left/, /×2\.0 calibrated/])
+})
+
+test('each subagent gets its own ETA line', async ($, on) => {
+  const clock = mock.clock(on, { now: 1_000_000 })
+  mock.store(on)
+  engineBottom(on, '2')
+
+  await $.turn.start({ text: 'split the work', turnId: 't3' })
+  await $.tool.call({ tool: 'mcp__eta__estimate', minutes: 10 } as never)
+  await $.agent.spawn({ prompt: 'grep for auth', description: 'find auth code', subagentType: 'Explore' } as never)
+  await $.agent.spawn({ prompt: 'write tests', description: 'add tests', subagentType: 'general-purpose' } as never)
+  await clock.advance(0)
+  await expectBand($, [/main ~10m00s left/, /2 subagents running/, /Explore: find auth code · ~2m00s left \(quick guess\)/, /general-purpose: add tests/])
+
+  await $.tool.call({ tool: 'mcp__eta__estimate', minutes: 5, step: 1, steps: 2, agentId: 'a2' } as never)
+  await clock.advance(60_000)
+  await expectBand($, [/add tests · ~4m00s left · step 1\/2/, /everything done in ~9m00s/])
+
+  await $.turn.complete({ answer: 'found', durationMs: 60_000, isAborted: false, turnId: 'x', reason: 'answer', agentId: 'a1' } as never)
+  await expectBand($, [/1 subagent running/], [/find auth code/])
 })

@@ -12,7 +12,7 @@
     {
       "name": "buddy",
       "source": "./buddy",
-      "description": "A tiny dancing block buddy beside each prompt you type, random shape and color per prompt, so you spot your prompts fast."
+      "description": "Clawd walks across every prompt you type, in its own color per prompt, so you spot your prompts fast."
     }
   ],
   "description": "Claude Code mods by Niket"

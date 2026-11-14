@@ -5,7 +5,7 @@ Claude Code mods by Niket.
 | Mod | What it does |
 | --- | --- |
 | [eta](eta/) | Live, self-calibrating ETA for the main thread and every subagent, done pings, and background `side:` tasks. |
-| [buddy](buddy/) | A tiny dancing block buddy beside each prompt you type, in a random shape and color, so you spot your prompts fast. |
+| [buddy](buddy/) | Clawd walks across every prompt you type, in its own color per prompt, so you spot your prompts fast. |
 
 ## Install
 

@@ -1,10 +1,10 @@
 # fold
 
-Fold Claude's long answers so the conversation stays easy to scan.
+Fold Claude's answers so the conversation stays easy to scan.
 
-- Click `▾ fold` at the end of a long answer to fold it to its first 3 lines; click `▸ N more lines` to open it again. (Clicks need the fullscreen view: `/tui fullscreen`.)
-- `/fold` folds every long answer at once; `/unfold` opens them all. Clicking one still opens or folds just that one.
-- Short answers are left exactly as Claude Code draws them.
+- Click `▾ fold` at the end of any answer of two lines or more to fold it to its first lines (up to 3); click `▸ N more lines` to open it again. (Clicks need the fullscreen view: `/tui fullscreen`.)
+- `/fold` folds every answer at once; `/unfold` opens them all. Clicking one still opens or folds just that one.
+- One-line answers are left exactly as Claude Code draws them.
 
 ## Install
 

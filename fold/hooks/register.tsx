@@ -6,7 +6,7 @@ import type { FoldAll, FoldedById } from '../types'
 const byId = atom({ plugin: 'fold', key: 'byId' } as const, {})
 const all = atom({ plugin: 'fold', key: 'all' } as const, null)
 
-export const LONG = 10 // an answer this many lines or longer gets a toggle
+export const LONG = 2 // any answer of two lines or more gets a toggle (one line has nothing to fold)
 export const KEEP = 3 // lines a folded answer still shows
 export const HREF = 'https://fold.toggle/' // the toggle link's address; never opened, the click is ours
 
@@ -41,8 +41,10 @@ export const register: Register = on => {
     const { Box, Markdown, Text } = $.ui.resolve(e)
     // The toggle is a link at the end of the answer: a click on a link in a reply is what
     // the fullscreen terminal hands to a plugin (a ctrl/cmd-click would open it instead).
-    const toggleLink = folded ? `[▸ ${lines.length - KEEP} more lines](${HREF})` : `[▾ fold](${HREF})`
-    const shown = (folded ? lines.slice(0, KEEP).join('\n') : e.props.text) + '\n\n' + toggleLink
+    const keep = Math.min(KEEP, lines.length - 1)
+    const more = lines.length - keep
+    const toggleLink = folded ? `[▸ ${more} more line${more === 1 ? '' : 's'}](${HREF})` : `[▾ fold](${HREF})`
+    const shown = (folded ? lines.slice(0, keep).join('\n') : e.props.text) + '\n\n' + toggleLink
     return (
       <Box flexDirection="row">
         <Box width={2} flexShrink={0}>

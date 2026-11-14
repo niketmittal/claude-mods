@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { OUTFITS, PROPS, TRICKS, draw, front, paint, scene, topicOf } from '../hooks/register'
+import { OUTFITS, PROPS, TRICKS, draw, front, paint, scene, tiny, topicOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -23,6 +23,10 @@ test('prompt topics pick props and scenes', () => {
   expect(topicOf('make the css pretty')).toEqual({ prop: 'flower', scene: 'garden' })
   expect(topicOf('thanks!')).toEqual({ prop: 'heart', scene: 'party' })
   expect(topicOf('what is a monad')).toEqual({ prop: 'think' })
+  expect(topicOf('explain closures')).toEqual({ outfit: 'graduate', crew: 'class' })
+  expect(topicOf('pair with me on this')).toEqual({ crew: 'catch' })
+  expect(topicOf('family photo')).toEqual({ crew: 'family' })
+  expect(topicOf('read the docs')).toEqual({ prop: 'book' })
   expect(topicOf('hello')).toBeNull()
 })
 
@@ -112,4 +116,35 @@ test('hammer comes down on the nail and the nail sinks', () => {
   expect(frames[2]?.[0]).toContain('✦')
   expect(frames[0]?.[1]).toContain('┃')
   expect(frames[4]?.[1]).toContain('╻')
+})
+
+test('crews: ducklings follow, catch throws a ball, class has a board and students', () => {
+  const at = (topic: Parameters<typeof scene>[3], b: number) => scene(60, b, 0, topic)
+  const walking = at({ crew: 'family' }, 3)
+  expect(walking.extras.filter(e => e.kind === 'tiny')).toHaveLength(2)
+  for (const e of walking.extras) if (e.kind === 'tiny') expect(e.x).toBeLessThan(walking.x)
+
+  const laps = Array.from({ length: 200 }, (_, b) => at({ crew: 'catch' }, b))
+  const ball = laps.flatMap(s => s.extras.filter(e => e.kind === 'ball'))
+  expect(new Set(ball.map(e => (e.kind === 'ball' ? e.x : 0))).size).toBeGreaterThan(5)
+  expect(laps.some(s => s.extras.some(e => e.kind === 'friend'))).toBe(true)
+
+  const cls = Array.from({ length: 200 }, (_, b) => at({ crew: 'class' }, b)).find(s => s.extras.some(e => e.kind === 'cells'))
+  expect(cls?.extras.filter(e => e.kind === 'tiny').length).toBeGreaterThan(1)
+  const g = paint(cls ?? at(null, 0), 69, { name: 'plain' }, '#D77757', 0, 1).map(r => r.map(c => c.ch).join(''))
+  expect(g.join('\n')).toContain('┌──────┐')
+  expect(g.join('\n')).toContain('▐▛█▜▌')
+})
+
+test('tiny Clawd is 5 wide', () => {
+  for (const step of [0, 1]) for (const r of tiny(step)) expect([...r.map(([t]) => t).join('')].length).toBe(5)
+})
+
+test('every prop frame is 8 wide and 3 tall', () => {
+  for (const p of Object.values(PROPS))
+    for (let i = 0; i < 30; i++) {
+      const rows = p.render(i)
+      expect(rows).toHaveLength(3)
+      for (const r of rows) expect(r).toHaveLength(8)
+    }
 })

@@ -27,12 +27,23 @@ Clawd, the block mascot from Claude Code's welcome screen, walks back and forth 
   | flowers, garden, pretty, design, css | grows a flower in a garden |
   | thanks, nice, love | floats hearts under confetti |
   | dance, music, fun | dances to music under confetti |
+  | explain, teach, learn, meeting | teaches a class of tiny Clawds at a chalkboard; one raises a hand |
+  | family, kids, team, friends | walks with two tiny Clawds hopping behind |
+  | play, pair, collab, buddy | plays catch with a friend |
+  | coffee, morning | sips coffee |
+  | read, docs, readme | reads a book, turning pages |
+  | guitar, band, song | plays guitar |
+  | win, passed, merged, done | holds up a trophy under fireworks |
+  | screenshot, photo, image | takes a photo, flash |
+  | cook, recipe, food | flips a pancake (chef hat) |
+  | rain | holds an umbrella |
+  | birthday | holds a balloon (party hat, fireworks) |
   | later, break, sleep | naps (zZ) under the moon |
   | a question | ponders with a thought bubble |
 
 - Prompts with no topic get a new activity and scene every lap.
 - A prompt's color and headwear come from its text, so the same prompt always looks the same.
-- On the way back, does one of Claude Code's own Clawd tricks, a different one each lap: jump, skip, spin, peekaboo, drop, waddle, wink, boop, tap, sneeze, turn, coin-hop.
+- On the way back, does one of Claude Code's own Clawd tricks, a different one each lap: jump, skip, spin, peekaboo, drop, waddle, wink, boop, tap, sneeze, turn, coin-hop, plus wave, shiver, moonwalk, bounce, doze and dab.
 
 ## Install
 

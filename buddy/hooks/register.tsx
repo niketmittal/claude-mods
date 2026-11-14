@@ -76,6 +76,12 @@ export const facing = (name: string, stride: number | null = null): Rows => {
   return [row(0, 'e'), row(1, 'n'), stride === null ? row(2, 'n') : [[STRIDE[stride % 2] ?? '', 'n']]]
 }
 
+// A tiny Clawd (kids, students): a head with two eyes on little stepping legs.
+export const tiny = (step: number): Rows => [
+  [['▐', 'n'], ['▛', 'e'], ['█', 'n'], ['▜', 'e'], ['▌', 'n']],
+  [[step % 2 ? ' ▘ ▝ ' : ' ▝ ▘ ', 'n']],
+]
+
 // Shift rows down (offset > 0, sinking) or up (offset < 0) inside a window of h rows.
 const shift = (rows: Rows, offset: number, h = rows.length): Rows => {
   const o = Math.max(-h, Math.min(h, offset))
@@ -128,6 +134,17 @@ export const TRICKS: Record<string, Key[]> = {
   sneeze: [...Se(so('closed', 'up'), 4), ...Se(so('closed'), 2, { offset: 1, poof: 'wave' }), ...Se(so('closed'), 2), ...Se('default', 2), ...Ss],
   turn: [...Mr(['right-12', 'right-30', 'right-55', 'right-75', 'edge']), ...Mr(['back-105', 'back-125', 'back-150', 'back', 'back']), ...Mr(['back-150', 'back-125', 'back-105', 'edge']), ...Mr(['left-75', 'left-55', 'left-30', 'left-12']), NO],
   'coin-hop': [...Se('default', 2, { offset: 1 }), ...Se('arms-up', 1), ...Mr(['right-55', 'edge', 'back-125', 'back']), ...Mr(['back-125', 'edge', 'left-55']), ...Se('arms-up', 1), ...Cr(), NO],
+  wave: [...[0, 1, 2, 3].flatMap(() => [...Se(so('open', 'one-up'), 2), ...Se('default', 1)]), NO],
+  shiver: [...Array.from({ length: 10 }, (_, k) => Se(so('closed'), 1, { x: k % 2 })).flat(), ...Se('arms-up', 2), NO],
+  moonwalk: [
+    ...[0, -1, -2, -3, -4, -5].flatMap(x => Se({ facing: 'right-30' }, 2, { x })),
+    ...Se('arms-up', 2, { x: -5 }),
+    ...[-5, -4, -3, -2, -1, 0].flatMap(x => Se({ facing: 'right-12' }, 1, { x })),
+    NO,
+  ],
+  bounce: [...[1, 0, 1, 0, 1, 0].flatMap(o => Se(o ? 'default' : 'arms-up', 2, { offset: o })), NO],
+  doze: [...Se(so('closed'), 4), ...Se(so('closed'), 4, { offset: 1 }), ...Se('arms-up', 2), ...Se('look-left', 2), ...Se('look-right', 2), NO],
+  dab: [...Se(so('left', 'one-up'), 4), ...Se(so('right', 'up'), 4), NO],
 }
 const TRICK_NAMES = Object.keys(TRICKS)
 
@@ -243,6 +260,44 @@ export const PROPS: Record<string, Prop> = {
       return [cells(['       ', ''], [i % 4 === 2 ? '✦' : ' ', '#F2D04B']), cells(['━━━━', WOOD], ['▐█▌', '#C8C8C8']), board]
     },
   },
+  coffee: simple(
+    '#F5F5F5',
+    [['  ( (   ', ' ▗▄▄▄▖  ', ' ▐███▌◗ '], ['   ) )  ', ' ▗▄▄▄▖  ', ' ▐███▌◗ ']],
+    i => (i % 6 < 3 ? so('closed', 'one-up') : so('right')),
+    { '(': '#9A9AA0', ')': '#9A9AA0' },
+  ),
+  book: simple(
+    '#F5F5F5',
+    [['   ╱    ', '▐≡≡│≡≡▌ ', ' ▀▀▀▀▀  '], ['   │    ', '▐≡≡│≡≡▌ ', ' ▀▀▀▀▀  '], ['   ╲    ', '▐≡≡│≡≡▌ ', ' ▀▀▀▀▀  ']],
+    i => (i % 10 === 9 ? so('closed') : so('right')),
+    { '▐': '#A0522D', '▌': '#A0522D', '▀': '#A0522D', '│': '#A0522D' },
+  ),
+  guitar: simple(
+    '#A0522D',
+    [['♪       ', ' ▟█▙━━━╸', ' ▜█▛    '], ['    ♫   ', ' ▟█▙━━━╸', ' ▜█▛    ']],
+    i => so(i % 4 < 2 ? 'closed' : 'right', i % 2 ? 'one-up' : 'down'),
+    { '♪': '#B57EDC', '♫': '#B57EDC', '━': '#C8C8C8', '╸': '#C8C8C8' },
+  ),
+  umbrella: simple('#E0607E', [['▗▄███▄▖ ', '   ┃    ', '   ┛    ']], i => so(i % 6 < 3 ? 'open' : 'right', 'one-up'), { '┃': '#9A9AA0', '┛': '#9A9AA0' }),
+  balloon: simple('#E0607E', [[' ▄█▄    ', ' ▀█▀    ', '  ╎     ']], i => (i % 8 < 4 ? so('right', 'one-up') : so('open', 'up')), { '╎': '#9A9AA0' }, [0, 0, -1, -1, 0, 0, 1, 1]),
+  trophy: simple(
+    '#F2C744',
+    [['▐▀█▀▌   ', ' ▝█▘    ', ' ▀▀▀    '], ['▐▀█▀▌ ✦ ', ' ▝█▘    ', ' ▀▀▀  ✧ ']],
+    i => (i % 4 < 2 ? so('open', 'up') : so('right', 'one-up')),
+    { '✦': '#FFFFFF', '✧': '#FFFFFF' },
+  ),
+  camera: simple(
+    '#9A9AA0',
+    [['        ', '▗▟▄▄▄▖  ', '▐█●██▌  '], [' ✦ ✦ ✦  ', '▗▟▄▄▄▖  ', '▐█●██▌  ']],
+    i => (i % 4 < 2 ? so('wink') : so('right', 'one-up')),
+    { '●': '#16232B', '✦': '#FFFFFF' },
+  ),
+  pan: simple(
+    '#9A9AA0',
+    [['        ', '        ', '▀▀▀▀━━━ '], ['  ▄▄    ', '        ', '▀▀▀▀━━━ '], ['        ', '  ▄▄    ', '▀▀▀▀━━━ ']],
+    i => so('right', i % 3 === 1 ? 'up' : 'one-up'),
+    { '▄': '#E8A33D', '━': '#A0522D' },
+  ),
   magnifier: simple('#E8A33D', [['▗▀▖     ', '▝▄▘     ', '  ▚     '], [' ▗▀▖    ', ' ▝▄▘    ', '   ▚    ']], i => so(i % 4 < 2 ? 'right' : 'open')),
   rocket: simple(
     '#E0607E',
@@ -262,37 +317,45 @@ export const PROPS: Record<string, Prop> = {
     { '✿': PINK, '❀': PINK, o: '#F2D04B' },
   ),
 }
-const PROP_NAMES = ['computer', 'hammer', 'magnifier', 'rocket', 'heart', 'music', 'sleep', 'flower']
+const PROP_NAMES = ['computer', 'hammer', 'magnifier', 'rocket', 'heart', 'music', 'sleep', 'flower', 'coffee', 'book', 'guitar', 'balloon', 'trophy', 'camera', 'pan']
 
 // ---------------------------------------------------------------------------
 // Scenes paint the whole row behind (or, for water, in front of) Clawd.
 const SCENE_NAMES = ['swim', 'space', 'garden', 'party', 'night', 'rain', 'snow', 'sunny', 'city', 'underwater', 'fireworks', 'matrix', 'love']
 
-export type Topic = { prop?: string; scene?: string; outfit?: string }
+export type Crew = 'family' | 'catch' | 'class'
+export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew }
 
 const TOPICS: [RegExp, Topic][] = [
+  [/\b(learn|teach|explain|tutorial|lesson|class|course|school|study|onboard|onboarding|standup|meeting)\b/, { outfit: 'graduate', crew: 'class' }],
+  [/\b(family|kids|children|parents?|mom|dad|baby|babies|team|together|friends)\b/, { crew: 'family' }],
+  [/\b(play|playing|ball|catch|pair|pairing|collab|collaborate|buddy|buddies)\b/, { crew: 'catch' }],
   [/\b(christmas|xmas|santa|holidays?)\b/, { scene: 'snow', outfit: 'santa' }],
   [/\b(pirate|treasure|ahoy)\b/, { scene: 'swim', outfit: 'pirate' }],
   [/\b(wizard|magic|spell)\b/, { scene: 'space', outfit: 'wizard' }],
-  [/\b(chef|cook|cooking|recipe|food|bake)\b/, { prop: 'hammer', outfit: 'chef' }],
+  [/\b(chef|cook|cooking|recipe|food|bake|breakfast|lunch|dinner)\b/, { prop: 'pan', outfit: 'chef' }],
+  [/\b(coffee|morning|caffeine|tea)\b/, { prop: 'coffee' }],
   [/\b(ninja|stealth|secret|sneaky)\b/, { scene: 'night', outfit: 'ninja' }],
-  [/\b(learn|study|course|school|tutorial|teach|explain)\b/, { prop: 'think', outfit: 'graduate' }],
-  [/\b(birthday|anniversary)\b/, { prop: 'heart', scene: 'fireworks', outfit: 'party hat' }],
+  [/\b(birthday|anniversary)\b/, { prop: 'balloon', scene: 'fireworks', outfit: 'party hat' }],
+  [/\b(read|reading|docs?|documentation|readme|book|spec|paper|article)\b/, { prop: 'book' }],
+  [/\b(screenshot|photo|image|picture|snapshot|camera)\b/, { prop: 'camera' }],
+  [/\b(guitar|band|concert|rock|song|songs)\b/, { prop: 'guitar', scene: 'party' }],
+  [/\b(win|won|winner|passed|passing|success|merged|milestone|shipped|done|finished|celebrate)\b/, { prop: 'trophy', scene: 'fireworks' }],
   [/\b(git|commit|push|pull|merge|rebase|branch|pr|diff|stash|checkout|cherry-pick|github|gitlab)\b/, { prop: 'computer' }],
   [/\b(code|coding|hack|hacker|matrix|algorithm|binary|terminal)\b/, { prop: 'computer', scene: 'matrix' }],
   [/\b(deploy|ship|release|launch|publish|prod|production|rollout)\b/, { prop: 'rocket', scene: 'space' }],
   [/\b(space|stars?|moon|galaxy|planet|orbit|astronaut|cosmic|alien)\b/, { prop: 'rocket', scene: 'space', outfit: 'alien' }],
   [/\b(fish|underwater|dive|diving|submarine|reef|aquarium)\b/, { scene: 'underwater' }],
   [/\b(swim|swimming|pool|beach|water|ocean|sea|surf|waves?|float|stream)\b/, { scene: 'swim' }],
-  [/\b(rain|rainy|storm|weather|umbrella)\b/, { scene: 'rain' }],
+  [/\b(rain|rainy|storm|weather|umbrella)\b/, { prop: 'umbrella', scene: 'rain' }],
   [/\b(snow|winter|cold|ice|freeze|frozen)\b/, { scene: 'snow' }],
   [/\b(sun|sunny|summer|vacation|weekend|trip)\b/, { scene: 'sunny', outfit: 'sombrero' }],
   [/\b(server|servers|infra|infrastructure|kubernetes|k8s|docker|cluster|city|cloud)\b/, { prop: 'computer', scene: 'city' }],
-  [/\b(fireworks|new year|milestone|shipped|done|finished|celebrate)\b/, { prop: 'music', scene: 'fireworks' }],
+  [/\b(fireworks|new year)\b/, { prop: 'music', scene: 'fireworks' }],
   [/\b(love|heart|crush)\b|<3/, { prop: 'heart', scene: 'love' }],
   [/\b(flowers?|garden|plants?|grow|bloom|seed|tree|spring|pretty|cute|beautiful|style|styling|design|css)\b/, { prop: 'flower', scene: 'garden' }],
   [/\b(thanks|thank you|thx|nice|cool|great|awesome|perfect|congrats|yay)\b/, { prop: 'heart', scene: 'party' }],
-  [/\b(dance|play|music|fun|party|game|song)\b/, { prop: 'music', scene: 'party' }],
+  [/\b(dance|music|fun|party|game)\b/, { prop: 'music', scene: 'party' }],
   [/\b(later|break|sleep|tired|wait|night|pause|tomorrow)\b/, { prop: 'sleep', scene: 'night' }],
   [/\b(search|find|look|grep|research|investigate|debug|check|test|inspect|trace|why)\b/, { prop: 'magnifier' }],
   [/\b(fix|build|implement|refactor|edit|change|add|make|create|write|tool|update|install|setup|set up)\b/, { prop: 'hammer' }],
@@ -314,12 +377,34 @@ const TURN_R = ['right-12', 'front', 'up', 'front', 'left-12']
 const TURN_L = ['left-12', 'front', 'up', 'front', 'right-12']
 const turnKey = (name: string): Key => (name === 'front' ? NO : name === 'up' ? { ...NO, pose: 'arms-up' } : { ...NO, pose: { facing: name } })
 
-export type Scene = { x: number; frame: Frame; prop: Cell[][] | null; scene: string | null }
+// Extra figures sharing the row: tiny Clawds (kids, students), a friend, a ball, a hand up.
+export type Extra =
+  | { kind: 'tiny'; x: number; hop: boolean; step: number; color: number; raise?: boolean }
+  | { kind: 'friend'; x: number; pose: Pose }
+  | { kind: 'cells'; x: number; rows: Cell[][] }
+  | { kind: 'ball'; x: number; y: number }
+
+export type Scene = { x: number; frame: Frame; prop: Cell[][] | null; scene: string | null; extras: Extra[] }
+
+const TINY_W = 5
+const GAP = 8 // the throw between two Clawds playing catch
+const WORDS = ['hello', 'a+b=c', '</>', 'claude', '2+2=4', 'git', 'λx.x', 'O(n)']
+
+// A classroom board: chalk writing itself out on green.
+const board = (word: string, i: number): Cell[][] => {
+  const shown = word.slice(0, Math.floor(i / 3)).padEnd(6).slice(0, 6)
+  return [cells(['┌──────┐', '#A0522D']), cells(['│', '#A0522D'], [shown, '#F5F5F5', '#1F3B2D'], ['│', '#A0522D']), cells(['└┬────┬┘', '#A0522D'])]
+}
 
 export const scene = (range: number, b: number, seed: number, topic: Topic | null): Scene => {
-  const room = range >= PROP_W + 1
-  const mid = room ? Math.floor((range - PROP_W - 1) / 2) : Math.max(0, range)
   const legs = Math.max(0, range)
+  // The topic sets the lap; with no topic, each lap draws its own scene, crew and prop.
+  const lapGuess = Math.floor(b / Math.max(1, 2 * legs + 66))
+  const crew: Crew | null = topic ? (topic.crew ?? null) : ([null, null, null, 'family', 'catch', 'class'] as const)[(seed + lapGuess * 5) % 6] ?? null
+  const students = Math.min(4, Math.floor((range - PROP_W - 2) / (TINY_W + 1)))
+  const need = crew === 'catch' ? GAP + W : crew === 'class' && students > 0 ? PROP_W + 2 + students * (TINY_W + 1) : PROP_W + 1
+  const room = range >= need
+  const mid = room ? Math.floor((range - need) / 2) : Math.max(0, range)
   const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
   const c = Math.floor(b / cycle)
   const trick = TRICKS[TRICK_NAMES[(seed + c) % TRICK_NAMES.length] ?? 'jump'] ?? jump
@@ -328,16 +413,62 @@ export const scene = (range: number, b: number, seed: number, topic: Topic | nul
   const propName = topic ? topic.prop : PROP_NAMES[(seed + c * 7) % PROP_NAMES.length]
   const prop = swim ? undefined : propName ? PROPS[propName] : undefined
 
+  // Ducklings: two tiny Clawds trail behind, hopping as they go.
+  const family = (x: number, dir: 1 | -1, moving: boolean): Extra[] =>
+    crew !== 'family'
+      ? []
+      : [0, 1].map(k => ({
+          kind: 'tiny' as const,
+          x: dir > 0 ? x - (TINY_W + 1) * (k + 1) : x + W + 1 + (TINY_W + 1) * k,
+          hop: moving ? (b + k) % 2 === 0 : (b + k * 3) % 8 === 0,
+          step: b + k,
+          color: k + 2,
+        }))
+
   const plain = (k: Key): Frame => draw(k)
   const act = (i: number, x: number): Scene => {
-    if (swim) return { x, frame: { rows: front(so(i % 6 < 3 ? 'open' : 'right', i % 4 < 2 ? 'up' : 'one-up')), offset: 0 }, prop: null, scene: bg }
+    const base = { x, scene: bg, extras: family(x, 1, false) }
+    if (swim) return { ...base, frame: { rows: front(so(i % 6 < 3 ? 'open' : 'right', i % 4 < 2 ? 'up' : 'one-up')), offset: 0 }, prop: null }
+    if (room && crew === 'catch') {
+      // A ball arcs between Clawd and a friend; whoever is about to catch it puts their arms up.
+      const u = i % (2 * GAP)
+      const pos = u < GAP ? u : 2 * GAP - 1 - u
+      const d = Math.min(pos, GAP - 1 - pos)
+      return {
+        ...base,
+        frame: { rows: front(so('right', pos <= 1 ? 'up' : 'down')), offset: 0 },
+        prop: null,
+        extras: [{ kind: 'friend', x: x + W + GAP, pose: so('left', pos >= GAP - 2 ? 'up' : 'down') }, { kind: 'ball', x: x + W + pos, y: d }],
+      }
+    }
+    if (room && crew === 'class' && students > 0) {
+      // Teacher Clawd points at the board; tiny students bob, and one raises a hand at a time.
+      const raised = Math.floor(i / 6) % students
+      return {
+        ...base,
+        frame: { rows: front(so('right', i % 4 < 2 ? 'one-up' : 'down')), offset: 0 },
+        prop: null,
+        extras: [
+          { kind: 'cells', x: x + W + 1, rows: board(WORDS[(seed + c) % WORDS.length] ?? 'hello', i) },
+          ...Array.from({ length: students }, (_, k): Extra => ({
+            kind: 'tiny',
+            x: x + W + 1 + PROP_W + 1 + k * (TINY_W + 1),
+            hop: (i + k * 3) % 9 === 0,
+            step: 0,
+            color: k + 1,
+            raise: k === raised && i % 6 > 1,
+          })),
+        ],
+      }
+    }
     const frame: Frame = { rows: front(prop?.pose(i) ?? so('open')), offset: 0 }
-    if (!room || !prop) return { x, frame, prop: null, scene: bg }
-    return { x, frame, prop: prop.render(i), scene: bg }
+    if (!room || !prop) return { ...base, frame, prop: null }
+    return { ...base, frame, prop: prop.render(i) }
   }
   const doTrick = (i: number, x: number): Scene => {
     const k = trick[i] ?? NO
-    return { x: Math.max(0, Math.min(legs, x + k.x)), frame: plain(k), prop: null, scene: bg }
+    const at = Math.max(0, Math.min(legs, x + k.x))
+    return { x: at, frame: plain(k), prop: null, scene: bg, extras: family(at, 1, false) }
   }
 
   let t = b % cycle
@@ -348,24 +479,25 @@ export const scene = (range: number, b: number, seed: number, topic: Topic | nul
     frame: { rows: facing(dir > 0 ? 'right-30' : 'left-30', i), offset: 0 },
     prop: null,
     scene: bg,
+    extras: family(from + dir * i, dir, true),
   })
-  const turnAt = (x: number, names: string[], i: number): Scene => ({ x, frame: plain(turnKey(names[i] ?? 'front')), prop: null, scene: bg })
+  const turnAt = (x: number, names: string[], i: number, dir: 1 | -1): Scene => ({ x, frame: plain(turnKey(names[i] ?? 'front')), prop: null, scene: bg, extras: family(x, dir, false) })
 
   const segs: [number, (i: number) => Scene][] = [
     [mid, i => walkTo(0, 1, i)],
     [ACT, i => act(i, mid)],
     [legs - mid, i => walkTo(mid, 1, i)],
-    [TURN_R.length, i => turnAt(legs, TURN_R, i)],
+    [TURN_R.length, i => turnAt(legs, TURN_R, i, 1)],
     [legs - mid, i => walkTo(legs, -1, i)],
     [TRICK, i => doTrick(i, mid)],
     [mid, i => walkTo(mid, -1, i)],
-    [TURN_L.length, i => turnAt(0, TURN_L, i)],
+    [TURN_L.length, i => turnAt(0, TURN_L, i, -1)],
   ]
   for (const [len, f] of segs) {
     if (t < len) return f(t)
     t -= len
   }
-  return { x: 0, frame: plain(NO), prop: null, scene: bg }
+  return { x: 0, frame: plain(NO), prop: null, scene: bg, extras: [] }
 }
 
 export const hash = (s: string) => {
@@ -479,30 +611,49 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
     }
   }
 
+  // A sprite: eyes get the dark only where the glyph leaves a gap; Clawd is solid,
+  // so the scene does not show through its spaces.
+  const sprite = (rows: Rows, x0: number, top: number, color: string) =>
+    rows.forEach((spans, dy) => {
+      let x = x0
+      const y = top + dy
+      for (const [text, kind] of spans)
+        for (const ch of text) {
+          if (kind === 'e' && ch !== '█') put(x, y, { ch, fg: color, bg: EYE_BG })
+          else if (kind === 'l') put(x, y, { ch, fg: EYE_BG, bg: color })
+          else if (ch !== ' ') put(x, y, { ch, fg: kind.startsWith('#') ? kind : color })
+          else put(x, y, { ch: ' ' })
+          x++
+        }
+    })
+  const crewColor = (k: number) => COLORS[(Math.max(0, COLORS.indexOf(body)) + k) % COLORS.length] ?? body
+
+  // Friends and tiny Clawds stand behind the main one.
+  for (const e of s.extras) {
+    if (e.kind === 'tiny') {
+      const top = h - 2 - (e.hop ? 1 : 0)
+      sprite(tiny(e.step), e.x, top, crewColor(e.color))
+      if (e.raise) {
+        put(e.x + 4, top - 1, { ch: '▐', fg: crewColor(e.color) })
+        put(e.x + 5, top - 1, { ch: '?', fg: '#F2D04B' })
+      }
+    } else if (e.kind === 'friend') sprite(front(e.pose), e.x, h - 3, crewColor(4))
+    else if (e.kind === 'cells') e.rows.forEach((r, i) => r.forEach((c, j) => put(e.x + j, h - 3 + i, c)))
+  }
+
   // Clawd, with the hat riding on its head through every sink and hop.
   const swim = s.scene === 'swim'
   const hat = outfit.hatAlt && (b >> 1) % 2 ? outfit.hatAlt : outfit.hat
-  const sprite: Rows = hat ? [pad(hat), ...s.frame.rows] : s.frame.rows
-  const rows = shift(sprite, s.frame.offset + (swim ? 1 : 0), h)
+  const rows = shift(hat ? [pad(hat), ...s.frame.rows] : s.frame.rows, s.frame.offset + (swim ? 1 : 0), h)
   if (s.frame.poof && s.frame.offset > 0) rows[0] = [[POOF[s.frame.poof], 'n']]
-  rows.forEach((spans, y) => {
-    let x = s.x
-    for (const [text, kind] of spans)
-      for (const ch of text) {
-        if (kind === 'e' && ch !== '█') put(x, y, { ch, fg: body, bg: EYE_BG })
-        else if (kind === 'l') put(x, y, { ch, fg: EYE_BG, bg: body })
-        else if (kind === 'e') put(x, y, { ch, fg: body })
-        else if (ch !== ' ') put(x, y, { ch, fg: kind.startsWith('#') ? kind : body })
-        else put(x, y, { ch: ' ' }) // Clawd is solid: the scene does not show through
-        x++
-      }
-  })
+  sprite(rows, s.x, 0, body)
 
   s.prop?.forEach((r, i) =>
     r.forEach((c, j) => {
       put(s.x + W + 1 + j, h - 3 + i, c)
     }),
   )
+  for (const e of s.extras) if (e.kind === 'ball') put(e.x, Math.max(0, h - 2 - e.y), { ch: '●', fg: '#E0607E' })
 
   if (swim)
     for (let x = 0; x < width; x++) put(x, h - 1, { ch: (x + (b >> 1)) % 3 === 0 ? '≈' : '~', fg: '#4FA3E0' })

@@ -4,6 +4,7 @@ Fold Claude's answers so the conversation stays easy to scan.
 
 - Click `▾ fold` at the end of any answer of two lines or more and it shrinks to a one-line summary of the whole answer; click `▸ full answer` to open it again. (Clicks need the fullscreen view: `/tui fullscreen`.)
 - Summaries are written by a small Haiku call when an answer finishes (or when you first fold it) and kept for the session, so folding is instant.
+- When you send a new prompt, every earlier answer folds to its summary and the newest answer stays open, so the conversation reads as a list of one-liners. `/autofold off` turns that off, `/autofold on` back on.
 - `/fold` folds every answer to its summary at once; `/unfold` opens them all. Clicking one still opens or folds just that one.
 - One-line answers are left exactly as Claude Code draws them.
 

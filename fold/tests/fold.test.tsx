@@ -7,6 +7,7 @@ const long = Array.from({ length: 14 }, (_, i) => `line ${i + 1}`).join('\n')
 const LINK = { key: 'fold', link: { href: 'https://fold.toggle/' } }
 
 const bottom = (on: On) => {
+  on('turn.start', ($, e) => ({ turnId: e.turnId }))
   on('ui.render', { component: 'AssistantMessage' }, ($, e) => {
     const { Text } = $.ui.resolve(e)
     return <Text>engine</Text>
@@ -38,4 +39,18 @@ test('folding shows a one-line summary of the whole answer; unfolding brings it 
   await ui.press(LINK)
   expect(JSON.stringify(await ui.drawn())).toContain('line 14')
   await ui.unmount()
+})
+
+test('sending a new prompt folds the answers before it; the new one stays open', async ($, on) => {
+  const clock = mock.clock(on, { now: 0 })
+  bottom(on)
+  const old = await mount($, long, 'old')
+  await clock.advance(10)
+  await $.turn.start({ text: 'next question', turnId: 't2' })
+  await clock.advance(10)
+  expect(JSON.stringify(await old.drawn())).toContain('▸ full answer')
+  const fresh = await mount($, long.replace('line 1', 'new 1'), 'new')
+  expect(JSON.stringify(await fresh.drawn())).toContain('▾ fold')
+  await old.unmount()
+  await fresh.unmount()
 })

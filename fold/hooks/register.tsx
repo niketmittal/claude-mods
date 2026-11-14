@@ -6,6 +6,10 @@ import type { FoldAll, FoldedById } from '../types'
 const byId = atom({ plugin: 'fold', key: 'byId' } as const, {})
 const all = atom({ plugin: 'fold', key: 'all' } as const, null)
 const summaries = atom({ plugin: 'fold', key: 'summaries' } as const, {})
+const auto = atom({ plugin: 'fold', key: 'auto' } as const, true)
+
+// Answers drawn so far this session, so a new prompt can fold the ones before it.
+const seen = new Set<string>()
 
 export const LONG = 2 // any answer of two lines or more can fold (one line has nothing to fold)
 export const HREF = 'https://fold.toggle/' // the toggle link's address; never opened, the click is ours
@@ -38,7 +42,24 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'fold', description: 'Fold every answer to a one-line summary.' })
     await $.command.register({ name: 'unfold', description: 'Open every folded answer again.' })
+    await $.command.register({ name: 'autofold', description: 'Fold earlier answers whenever you send a prompt: on or off.', argumentHint: 'on|off' })
     return next(e)
+  })
+
+  // A new prompt folds every answer before it (unless turned off); the new answer opens.
+  on('turn.start', async ($, e, next) => {
+    if (await read($, auto)) {
+      const ids = [...seen]
+      await update($, all, () => null)
+      await update($, byId, m => ({ ...m, ...Object.fromEntries(ids.filter(id => !(id in m)).map(id => [id, true])) }))
+    }
+    return next(e)
+  }).catch(($, e, next) => next(e))
+
+  on('command.run', { command: 'autofold' }, async ($, e) => {
+    const enabled = e.args.trim().toLowerCase() !== 'off'
+    await update($, auto, () => enabled)
+    return { text: enabled ? 'Earlier answers fold when you send a prompt.' : 'Answers stay open when you send a prompt.' }
   })
 
   // Each finished answer gets its summary written right away, so folding it is instant.
@@ -69,6 +90,7 @@ export const register: Register = on => {
     const text = e.props.text
     if (e.surface !== 'terminal' || e.props.isSummary || text.split('\n').length < LONG) return next(e)
     const id = e.requestId
+    seen.add(id)
     const everything = await read($, all)
     const folded = isFolded(await read($, byId), everything, id)
     const summary = (await read($, summaries))[textKey(text)]

@@ -10,6 +10,8 @@ declare module 'claude-code' {
       byId: FoldedById
       all: FoldAll
       summaries: Summaries
+      // Fold earlier answers whenever a new prompt goes in (on by default).
+      auto: boolean
     }
   }
 }

@@ -90,4 +90,4 @@ An accurate ETA for Claude's current work, measured from its progress, and nothi
 
 ## fold
 
-Fold Claude's answers to a one-line summary: every answer of two lines or more ends in a `▾ fold` link (`▸ full answer` opens it again), and `/fold` and `/unfold` do every answer at once. [Details →](fold/)
+Fold Claude's answers to a one-line summary: when you send a new prompt, earlier answers fold and the newest stays open; any answer folds or opens with the `▾ fold` / `▸ full answer` link, and `/fold`, `/unfold` and `/autofold off` cover the rest. [Details →](fold/)

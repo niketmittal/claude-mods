@@ -499,6 +499,19 @@ export type Crew = 'family' | 'catch' | 'class'
 export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew }
 
 const TOPICS: [RegExp, Topic][] = [
+  // An item named outright shows that item.
+  [/\b(hammer|nails?|hammering)\b/, { prop: 'hammer' }],
+  [/\b(laptop|computer|keyboard|typing)\b/, { prop: 'computer' }],
+  [/\b(mug|cup)\b/, { prop: 'coffee' }],
+  [/\b(books?)\b/, { prop: 'book' }],
+  [/\b(guitars?)\b/, { prop: 'guitar', scene: 'party' }],
+  [/\b(cameras?|photos?)\b/, { prop: 'camera' }],
+  [/\b(balloons?)\b/, { prop: 'balloon' }],
+  [/\b(trophy|trophies|award)\b/, { prop: 'trophy', scene: 'fireworks' }],
+  [/\b(rockets?)\b/, { prop: 'rocket', scene: 'space' }],
+  [/\b(umbrellas?)\b/, { prop: 'umbrella', scene: 'rain' }],
+  [/\b(pancakes?|pan)\b/, { prop: 'pan', outfit: 'chef' }],
+  [/\b(magnifier|magnifying)\b/, { prop: 'magnifier' }],
   [/\b(learn|teach|explain|tutorial|lesson|class|course|school|study|onboard|onboarding|standup|meeting)\b/, { outfit: 'graduate', crew: 'class' }],
   [/\b(family|kids|children|parents?|mom|dad|baby|babies|team|together|friends)\b/, { crew: 'family' }],
   [/\b(play|playing|ball|catch|pair|pairing|collab|collaborate|buddy|buddies)\b/, { crew: 'catch' }],

@@ -25,7 +25,7 @@ test('prompt topics pick props and scenes', () => {
   expect(topicOf('what is a monad')).toEqual({ prop: 'think' })
   expect(topicOf('explain closures')).toEqual({ outfit: 'graduate', crew: 'class' })
   expect(topicOf('pair with me on this')).toEqual({ crew: 'catch' })
-  expect(topicOf('family photo')).toEqual({ crew: 'family' })
+  expect(topicOf('family dinner')).toEqual({ crew: 'family' })
   expect(topicOf('read the docs')).toEqual({ prop: 'book' })
   expect(topicOf('hello')).toBeNull()
 })
@@ -193,4 +193,11 @@ test('what Clawd holds or wears never matches its own color', () => {
     // the hat row over Clawd is not in Clawd's color either
     for (const c of g[0]?.slice(clawdX, clawdX + 9) ?? []) if (c.ch !== ' ' && c.fg) expect(c.fg).not.toBe(body)
   }
+})
+
+test('naming an item shows it', () => {
+  expect(topicOf('hammer')).toEqual({ prop: 'hammer' })
+  expect(topicOf('laptop')).toEqual({ prop: 'computer' })
+  expect(topicOf('umbrella?')).toEqual({ prop: 'umbrella', scene: 'rain' })
+  expect(topicOf('rocket')).toEqual({ prop: 'rocket', scene: 'space' })
 })

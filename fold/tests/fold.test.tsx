@@ -24,24 +24,11 @@ test('a long answer folds and unfolds with its toggle', async ($, on) => {
     return <Text>engine</Text>
   })
   const ui = await mount($, long)
-  expect(await ui.find({ type: 'Button', text: /fold/ })).toBeDefined()
-  await ui.press({ key: 'fold' })
-  expect(await ui.find({ type: 'Button', text: /11 more lines/ })).toBeDefined()
-  expect(await ui.find({ type: 'Button', text: /line 1/ })).toBeDefined() // the preview itself is the click target
+  expect(JSON.stringify(await ui.drawn())).toContain('▾ fold')
+  await ui.press({ key: 'fold', link: { href: 'https://fold.toggle/' } })
+  expect(JSON.stringify(await ui.drawn())).toContain('11 more lines')
   expect(JSON.stringify(await ui.drawn())).not.toContain('line 4')
-  await ui.press({ key: 'fold' })
+  await ui.press({ key: 'fold', link: { href: 'https://fold.toggle/' } })
   expect(JSON.stringify(await ui.drawn())).toContain('line 14')
-  await ui.unmount()
-})
-
-test('clicking the bullet folds an open answer', async ($, on) => {
-  mock.clock(on, { now: 0 })
-  on('ui.render', { component: 'AssistantMessage' }, ($, e) => {
-    const { Text } = $.ui.resolve(e)
-    return <Text>engine</Text>
-  })
-  const ui = await mount($, long, 'b2')
-  await ui.press({ key: 'bullet' })
-  expect(await ui.find({ type: 'Button', text: /more lines/ })).toBeDefined()
   await ui.unmount()
 })

@@ -8,6 +8,7 @@ const all = atom({ plugin: 'fold', key: 'all' } as const, null)
 
 export const LONG = 10 // an answer this many lines or longer gets a toggle
 export const KEEP = 3 // lines a folded answer still shows
+export const HREF = 'https://fold.toggle/' // the toggle link's address; never opened, the click is ours
 
 export const isFolded = (ids: FoldedById, everything: FoldAll, id: string) => ids[id] ?? everything ?? false
 
@@ -37,31 +38,18 @@ export const register: Register = on => {
     const everything = await read($, all)
     const folded = isFolded(await read($, byId), everything, id)
     const toggle = () => update($, byId, ids => ({ ...ids, [id]: !isFolded(ids, everything, id) }))
-    const { Box, Button, Markdown, Text } = $.ui.resolve(e)
-    const bullet = e.props.isFirstOfReply ? '⏺' : ' '
-    if (folded)
-      // Folded: the whole preview is one button; a click anywhere on it opens the answer.
-      return (
-        <Box flexDirection="row">
-          <Box width={2} flexShrink={0}>
-            <Text>{bullet}</Text>
-          </Box>
-          <Button key="fold" plain onPress={toggle}>
-            {lines.slice(0, KEEP).join('\n')}
-            {'\n'}
-            <Text dimColor>▸ {lines.length - KEEP} more lines</Text>
-          </Button>
-        </Box>
-      )
-    // Open: the bullet and the line at the end fold it (the formatted body itself cannot take a click).
+    const { Box, Markdown, Text } = $.ui.resolve(e)
+    // The toggle is a link at the end of the answer: a click on a link in a reply is what
+    // the fullscreen terminal hands to a plugin (a ctrl/cmd-click would open it instead).
+    const toggleLink = folded ? `[▸ ${lines.length - KEEP} more lines](${HREF})` : `[▾ fold](${HREF})`
+    const shown = (folded ? lines.slice(0, KEEP).join('\n') : e.props.text) + '\n\n' + toggleLink
     return (
       <Box flexDirection="row">
         <Box width={2} flexShrink={0}>
-          {e.props.isFirstOfReply ? <Button key="bullet" plain label="⏺" onPress={toggle} /> : <Text> </Text>}
+          <Text>{e.props.isFirstOfReply ? '⏺' : ' '}</Text>
         </Box>
         <Box flexDirection="column" flexGrow={1}>
-          <Markdown text={e.props.text} />
-          <Button key="fold" plain label="▾ fold" onPress={toggle} />
+          <Markdown key="fold" text={shown} pressableLinks={[HREF]} onLinkPress={toggle} />
         </Box>
       </Box>
     )

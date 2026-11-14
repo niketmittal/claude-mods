@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { OUTFITS, PROPS, TRICKS, draw, front, paint, scene, tiny, topicOf } from '../hooks/register'
+import { OUTFITS, PROPS, TRICKS, draw, front, paint, scene, startBeat, tiny, topicOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -160,4 +160,11 @@ test('small things are small: mug, camera and book fit beside Clawd at a fractio
     const cols = new Set((PROPS[name]?.render(0) ?? []).flatMap(r => r.map((c, x) => (c.ch !== ' ' ? x : -1))).filter(x => x >= 0))
     expect(cols.size).toBeLessThanOrEqual(6)
   }
+})
+
+test('each message has its own clock, even with the same text', () => {
+  expect(startBeat('m1', 'coffee?', 100)).toBe(100)
+  expect(startBeat('m1', 'coffee?', 500)).toBe(100)
+  expect(startBeat('m2', 'coffee?', 900)).toBe(900) // same text sent again later starts fresh
+  expect(startBeat('m2-stored', 'coffee?', 905)).toBe(900) // its id changing moments later keeps the start
 })

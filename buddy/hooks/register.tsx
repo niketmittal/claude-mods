@@ -305,16 +305,22 @@ const hammer: Prop = {
   },
 }
 
-// A mug of coffee, Clawd-sized, held at its hand: steam curls up, and every few
-// beats Clawd lifts it to its face and sips, eyes closed.
+// A mug of coffee at Clawd's hand: white, a loop handle, dark coffee
+// inside, one thin wisp of steam curling up. Every few beats Clawd lifts it to its
+// face and sips, eyes closed (no steam while it drinks).
+const MUG = ['WcW..', 'WWWh.', 'WWW.h', 'WWWh.'] // a loop handle with a hole in it
 const coffee: Prop = {
-  pose: i => (i % 8 >= 4 && i % 8 < 7 ? so('closed', 'one-up') : so('right')),
+  pose: i => (i % 10 >= 6 && i % 10 < 9 ? so('closed', 'one-up') : so('right')),
   render: i => {
-    const sip = i % 8 >= 4 && i % 8 < 7
-    const mug = ['WcW.', 'WWWh', 'WWW.']
-    let art = stamp(EMPTY(), mug, 0, sip ? 2 : 4)
-    if (!sip) art = stamp(art, i % 2 ? ['.s..', 's.s.', '.s..'] : ['s.s.', '.s..', 's.s.'], 0, 1)
-    return pixels(art, { W: WHITE, c: '#6B3E26', h: WHITE, s: GRAY })
+    const sip = i % 10 >= 6 && i % 10 < 9
+    const top = sip ? 2 : 4
+    let art = stamp(EMPTY(), MUG, 0, top)
+    if (!sip)
+      for (let k = 1; k <= 3; k++) {
+        const x = 1 + ((k + i) % 2) - (k === 1 ? 0 : 0)
+        art = stamp(art, [k === 3 ? 'f' : 's'], x, top - k)
+      }
+    return pixels(art, { W: WHITE, c: '#4A2A17', h: WHITE, s: '#B8B8BE', f: '#7A7A80' })
   },
 }
 
@@ -856,8 +862,19 @@ const runs = (row: Cell[]) => {
   return out
 }
 
-// When each prompt was first drawn, so its own animation starts at the beginning.
-const firstBeat = new Map<string, number>()
+// When each message was first drawn, so its own animation starts at the beginning.
+// Keyed by message id; a fresh prompt's id changes once it is stored, so a new id
+// whose text was first drawn moments ago keeps that start instead of restarting.
+const firstBeat = new Map<string, { text: string; b: number }>()
+
+export const startBeat = (id: string, text: string, b: number): number => {
+  const known = firstBeat.get(id)
+  if (known) return known.b
+  let start = b
+  for (const v of firstBeat.values()) if (v.text === text && b - v.b >= 0 && b - v.b < 20) start = v.b
+  firstBeat.set(id, { text, b: start })
+  return start
+}
 
 export const COLORS = ['#D77757', '#E8A33D', '#6CC24A', '#4FA3E0', '#B57EDC', '#E0607E', '#3CC8B4', '#F2D04B']
 
@@ -882,8 +899,8 @@ export const register: Register = on => {
     const longest = Math.max(...e.props.text.split('\n').map(l => l.length), 1)
     const textW = Math.min(longest + 4, cols - W - PROP_W - 4)
     const range = cols - textW - W - 1
-    if (e.props.onScreen !== null && !firstBeat.has(e.props.text)) firstBeat.set(e.props.text, b)
-    const s = scene(range, b - (firstBeat.get(e.props.text) ?? b), seed >>> 8, topic)
+    const start = e.props.onScreen === null ? b : startBeat(e.requestId, e.props.text, b)
+    const s = scene(range, b - start, seed >>> 8, topic)
     const grid = paint(s, range + W, outfit, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)

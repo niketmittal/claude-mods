@@ -488,8 +488,265 @@ const flower: Prop = {
   },
 }
 
-export const PROPS: Record<string, Prop> = { computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower }
-const PROP_NAMES = ['computer', 'hammer', 'magnifier', 'rocket', 'heart', 'music', 'sleep', 'flower', 'coffee', 'book', 'guitar', 'balloon', 'trophy', 'camera', 'pan']
+
+// ---- More activities, picked from what people most often ask Claude Code for. ----
+
+// "yes", "ok", "go": a green check draws itself stroke by stroke, then sparkles.
+const CHECK_STROKE: [number, number][] = [[0, 3], [1, 4], [1, 5], [2, 5], [2, 6], [3, 5], [3, 4], [4, 4], [4, 3], [5, 3], [5, 2], [6, 2], [6, 1], [7, 1], [7, 0]]
+const approve: Prop = {
+  pose: i => (i % 12 >= 6 ? so('open', 'up') : so('right')),
+  render: i => {
+    let art = EMPTY()
+    const n = Math.min(CHECK_STROKE.length, (i % 12) * 3)
+    for (const [x, y] of CHECK_STROKE.slice(0, n)) art = stamp(art, ['G'], x, y)
+    const sparkle: Overlay[] = i % 12 >= 6 ? (i % 2 ? [[5, 3, '✦', '#F2D04B']] : [[2, 0, '✧', '#F2D04B']]) : []
+    return pixels(art, { G: '#3FBF5F' }, sparkle)
+  },
+}
+
+// "show", "open", "view": binoculars at Clawd's eyes, sweeping, glints moving.
+const binoculars: Prop = {
+  pose: i => so(i % 8 < 4 ? 'right' : 'left'),
+  render: i => {
+    const y = i % 8 < 4 ? 2 : 3
+    let art = stamp(EMPTY(), ['.BB..BB.', 'BBBBBBBB', 'BLLBBLLB', 'BLLBBLLB', '.BB..BB.'], 0, y - 1)
+    art = stamp(art, ['W'], i % 2 ? 1 : 5, y + 1)
+    return pixels(art, { B: '#3A3F4B', L: '#7FB2E5', W: WHITE })
+  },
+}
+
+// "shop", "order", "customer": a shopping cart filling with parcels, wheels turning.
+const cart: Prop = {
+  pose: () => so('right'),
+  render: i => {
+    let art = stamp(EMPTY(), ['h.......', '.hCCCCCC', '..CcCcCC', '..CCCCC.', '...w..w.'], 0, 3)
+    const items = Math.floor(i / 4) % 4
+    const parcels: [string, number][] = [['p', 3], ['y', 5], ['g', 4]]
+    parcels.slice(0, items).forEach(([c, x], k) => (art = stamp(art, [c + c, c + c], x - (k === 2 ? 1 : 0), k === 2 ? 1 : 2)))
+    if (i % 2) art = stamp(art, ['...W..W.'], 0, 7)
+    return pixels(art, { h: GRAY, C: '#4FA3E0', c: '#2E6FA8', w: '#3A3F4B', W: GRAY, p: '#E0607E', y: '#F2D04B', g: '#6CC24A' })
+  },
+}
+
+// "page", "button", "theme", "ui": painting a canvas on an easel, color by color.
+const PAINT = ['#E0607E', '#F2D04B', '#4FA3E0', '#6CC24A', '#B57EDC', '#E8A33D']
+const easel: Prop = {
+  pose: i => so('right', i % 2 ? 'one-up' : 'down'),
+  render: i => {
+    let art = stamp(EMPTY(), ['WWWWWW..', 'W....W..', 'W....W..', 'W....W..', 'WWWWWW..', '.l..l...', 'l....l..'], 1, 0)
+    const done = i % 16
+    const pal: Record<string, string> = { W: WHITE, l: WOOD, b: '#3A3F4B' }
+    for (let k = 0; k < Math.min(12, done); k++) {
+      const key = String.fromCharCode(97 + (k % 6))
+      pal[key] = PAINT[k % 6] ?? WHITE
+      art = stamp(art, [key], 2 + (k % 4), 1 + Math.floor(k / 4))
+    }
+    if (done < 12) art = stamp(art, ['b', 'b'], 2 + (done % 4) + 1, 2 + Math.floor(done / 4))
+    return pixels(art, pal)
+  },
+}
+
+// "run", "start", "execute": a play button and a progress bar filling up, then a check.
+const run: Prop = {
+  pose: i => (i % 14 === 0 ? so('right', 'type') : i % 14 >= 11 ? so('open', 'up') : so('right')),
+  render: i => {
+    const fill = Math.min(8, Math.floor(((i % 14) * 8) / 10))
+    let art = stamp(EMPTY(), ['.G......', '.GG.....', '.GGG....', '.GG.....', '.G......'], 0, 0)
+    art = stamp(art, ['k'.repeat(8)], 0, 7)
+    if (fill) art = stamp(art, ['g'.repeat(fill)], 0, 7)
+    const done: Overlay[] = i % 14 >= 11 ? [[5, 1, '✓', '#3FBF5F']] : []
+    return pixels(art, { G: i % 2 ? '#3FBF5F' : '#2E9E4A', k: '#3A3F4B', g: '#3FBF5F' }, done)
+  },
+}
+
+// "remove", "delete", "clean": a crumpled paper arcs into a bin; the lid flips open for it.
+const BALL_PATH: [number, number][] = [[0, 4], [1, 2], [2, 1], [3, 1], [4, 2], [5, 3]]
+const trash: Prop = {
+  pose: i => (i % 8 === 0 ? so('right', 'one-up') : so('right')),
+  render: i => {
+    const k = i % 8
+    const open = k >= 3 && k <= 6
+    let art = stamp(EMPTY(), ['TTTT', 'TtTt', 'TtTt', 'TTTT'], 4, 4)
+    art = stamp(art, open ? ['...L', '...L'] : ['LLLLL'], open ? 4 : 3, open ? 1 : 3)
+    const ball = BALL_PATH[k]
+    if (ball && k < 6) art = stamp(art, ['P'], ball[0], ball[1])
+    return pixels(art, { T: '#6B7A8F', t: '#55627A', L: '#4A5568', P: WHITE }, k === 6 ? [[5, 1, '·', LIGHT]] : [])
+  },
+}
+
+// "plan", "idea": a light bulb flickers on, then glows with rays (and arms go up).
+const bulb: Prop = {
+  pose: i => (i % 12 >= 7 ? so('open', 'up') : so('right')),
+  render: i => {
+    const k = i % 12
+    const on = k === 4 || k >= 6
+    const art = ['..YYY...', '.YYYYY..', '.YYWYY..', '..YYY...', '..ggg...', '..ggg...', '........', '........']
+    const rays: Overlay[] = k >= 7 ? [[0, 0, '·', '#F2D04B'], [6, 0, '·', '#F2D04B'], [6, 2, '✦', '#F2D04B']] : []
+    return pixels(art, { Y: on ? '#F2D04B' : '#6A6A55', W: on ? WHITE : '#8A8A75', g: GRAY }, rays)
+  },
+}
+
+// "payment", "pricing", "money": a coin flips down onto a growing stack.
+const coins: Prop = {
+  pose: i => so('right', i % 3 === 0 ? 'one-up' : 'down'),
+  render: i => {
+    const stack = Math.floor(i / 3) % 6
+    let art = EMPTY()
+    for (let k = 0; k < stack; k++) art = stamp(art, [k % 2 ? 'CCCC' : 'cCCc'], 2, 7 - k)
+    const fall = i % 3
+    art = stamp(art, [i % 2 ? '.CC.' : 'CCCC'], 2, Math.min(fall * 2, 6 - stack))
+    return pixels(art, { C: GOLD, c: '#C9971C' }, stack >= 4 ? [[6, 1, '$', GOLD]] : [])
+  },
+}
+
+// "api", "request", "webhook": a server rack blinks; a request packet goes over, a response comes back.
+const server: Prop = {
+  pose: () => so('right'),
+  render: i => {
+    const k = i % 10
+    let art = ['.....SSS', '.....SaS', '.....SSS', '.....SbS', '.....SSS', '.....SaS', '.....SSS', '.....SSS']
+    if (k < 5) art = stamp(art, ['q'], k, 3)
+    else art = stamp(art, ['r'], 9 - k, 5)
+    return pixels(art, { S: '#3A3F4B', a: i % 2 ? '#3FBF5F' : '#2A5A3A', b: i % 3 ? '#F2D04B' : '#5A5530', q: '#4FC1E9', r: '#3FBF5F' })
+  },
+}
+
+// "phone", "mobile", "app": a phone buzzes with a notification; Clawd taps it.
+const phone: Prop = {
+  pose: i => so('right', i % 4 === 3 ? 'type' : 'down'),
+  render: i => {
+    const buzz = i % 8 < 2 ? (i % 2 ? 1 : -1) : 0
+    let art = stamp(EMPTY(), ['KKKK', 'KssK', 'KssK', 'KssK', 'KssK', 'KKKK', '.KK.'], 2 + buzz, 1)
+    if (i % 8 < 5) art = stamp(art, ['nn'], 3 + buzz, 2)
+    if (i % 8 >= 3) art = stamp(art, ['ll', '..'], 3 + buzz, 4)
+    return pixels(art, { K: '#2A2E37', s: '#4FA3E0', n: '#E0607E', l: WHITE }, i % 8 < 2 ? [[7, 0, '!', '#E0607E']] : [])
+  },
+}
+
+// "email", "message", "send": a paper plane leaves Clawd's hand and glides off, leaving a trail.
+const PLANE_PATH: [number, number][] = [[0, 4], [1, 4], [2, 3], [3, 3], [4, 2], [5, 2], [6, 1], [7, 1], [8, 0]]
+const plane: Prop = {
+  pose: i => (i % 10 < 2 ? so('right', 'one-up') : so('right')),
+  render: i => {
+    const k = i % 10
+    let art = EMPTY()
+    const at = PLANE_PATH[k]
+    if (at) {
+      art = stamp(art, ['WW.', '.WW', 'WW.'], at[0] - 1, at[1])
+      const prev = PLANE_PATH[k - 2]
+      if (prev) art = stamp(art, ['d'], prev[0] - 1, prev[1] + 1)
+    }
+    return pixels(art, { W: WHITE, d: GRAY })
+  },
+}
+
+// "error", "bug", "crash": a bug scuttles toward Clawd; Clawd stomps and it vanishes in a puff.
+const bug: Prop = {
+  pose: i => (i % 10 >= 7 && i % 10 < 9 ? so('open', 'up') : so('right')),
+  render: i => {
+    const k = i % 10
+    if (k >= 8) return pixels(EMPTY(), {}, [[0, 3, '✦', '#F2D04B'], [1, 3, '·', LIGHT]])
+    const x = 6 - k
+    const art = stamp(EMPTY(), ['.ee', 'RkR', k % 2 ? 'l.l' : '.l.'], x, 5)
+    return pixels(art, { e: '#3A3F4B', R: '#D7263D', k: '#3A3F4B', l: '#3A3F4B' })
+  },
+}
+
+// "scan", "barcode", "qr": a scanner's red laser sweeps a barcode, then beeps a check.
+const scanner: Prop = {
+  pose: () => so('right', 'one-up'),
+  render: i => {
+    const k = i % 8
+    let art = stamp(EMPTY(), ['WWWWWW', 'WkWkkW', 'WkWkkW', 'WkWkkW', 'WWWWWW'], 2, 2)
+    art = stamp(art, ['gg'], 0, 3)
+    if (k < 6) art = stamp(art, ['rrrrrr'], 2, 3 + (k < 3 ? k : 5 - k))
+    return pixels(art, { W: WHITE, k: '#2A2E37', g: GRAY, r: '#E02E2E' }, k >= 6 ? [[7, 0, '✓', '#3FBF5F']] : [])
+  },
+}
+
+// "time", "schedule", "deadline": an alarm clock, its hand going round, ringing on the hour.
+const HAND: [number, number][] = [[3, 2], [4, 2], [4, 3], [4, 4], [3, 4], [2, 4], [2, 3], [2, 2]]
+const clock: Prop = {
+  pose: i => (i % 16 >= 12 ? so('closed', 'up') : so('right')),
+  render: i => {
+    const ring = i % 16 >= 12
+    const shake = ring ? (i % 2 ? 1 : -1) : 0
+    let art = stamp(EMPTY(), ['.b...b.', '..CCC..', '.CWWWC.', '.CWWWC.', '.CWWWC.', '..CCC..', '.l...l.'], 0 + shake, 0)
+    const [hx, hy] = HAND[i % 8] ?? [3, 2]
+    art = stamp(art, ['h'], hx + shake, hy)
+    art = stamp(art, ['h'], 3 + shake, 3)
+    const bells: Overlay[] = ring ? [[7, 0, ')', LIGHT], [7, 1, ')', LIGHT]] : []
+    return pixels(art, { b: GOLD, C: '#E0607E', W: WHITE, h: '#2A2E37', l: '#2A2E37' }, bells)
+  },
+}
+
+// "data", "dashboard", "chart": a bar chart's bars grow one after another.
+const chart: Prop = {
+  pose: () => so('right'),
+  render: i => {
+    let art = stamp(EMPTY(), ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'aaaaaaaa'], 0, 0)
+    const t = i % 16
+    ;([[1, 3, 'p'], [3, 5, 'b'], [5, 7, 'g']] as [number, number, string][]).forEach(([x, full, c], k) => {
+      const h = Math.max(0, Math.min(full, t - k * 3))
+      for (let y = 0; y < h; y++) art = stamp(art, [c + c], x, 6 - y)
+    })
+    return pixels(art, { a: GRAY, p: '#E0607E', b: '#4FA3E0', g: '#3FBF5F' })
+  },
+}
+
+// "settings", "config": two gears turning against each other.
+const GEAR = [
+  ['.g.g.', 'ggggg', '.gwg.', 'ggggg', '.g.g.'],
+  ['g.g.g', '.ggg.', 'ggwgg', '.ggg.', 'g.g.g'],
+]
+const gears: Prop = {
+  pose: i => so(i % 6 < 3 ? 'right' : 'open'),
+  render: i => {
+    let art = stamp(EMPTY(), GEAR[i % 2] ?? [], 0, 2)
+    art = stamp(art, (GEAR[(i + 1) % 2] ?? []).map(r => r.replace(/g/g, 'G')), 3, 0)
+    return pixels(art, { g: GRAY, G: '#E8A33D', w: '#2A2E37' })
+  },
+}
+
+// "login", "password", "security": a key slides into a padlock, it turns, the shackle pops open.
+const lock: Prop = {
+  pose: i => (i % 10 >= 7 ? so('open', 'up') : so('right')),
+  render: i => {
+    const k = i % 10
+    const open = k >= 6
+    let art = stamp(EMPTY(), open ? ['.sss.', '.s...', '.s.s.'] : ['.....', '.sss.', '.s.s.'], 2, 0)
+    art = stamp(art, ['LLLLL', 'LLkLL', 'LLLLL'], 2, 3)
+    if (k < 6) art = stamp(art, ['yyK'], Math.min(k, 2) - 2, 4)
+    return pixels(art, { s: LIGHT, L: GOLD, k: '#2A2E37', y: '#C9971C', K: '#C9971C' }, k >= 7 ? [[6, 1, '✓', '#3FBF5F']] : [])
+  },
+}
+
+// "install", "extension", "package": a parcel opens and a puzzle piece pops out.
+const box: Prop = {
+  pose: i => (i % 10 >= 6 ? so('open', 'up') : so('right')),
+  render: i => {
+    const k = i % 10
+    const open = k >= 3
+    let art = stamp(EMPTY(), ['BBtBBB', 'BBtBBB', 'BBBBBB', 'BBBBBB'], 1, 4)
+    art = stamp(art, open ? ['F....F', 'F....F'] : ['FFFFFF'], 1, open ? 2 : 3)
+    if (k >= 4) art = stamp(art, ['.p.', 'ppp', 'pp.'], 2, Math.max(0, 4 - (k - 4) * 2))
+    return pixels(art, { B: '#C08A4E', t: '#E8D3A8', F: '#A9743C', p: '#B57EDC' }, k >= 6 ? [[6, 0, '✦', '#F2D04B']] : [])
+  },
+}
+
+// "video", "animation", "gif": a clapperboard opens and snaps shut.
+const clapper: Prop = {
+  pose: i => so('right', i % 6 === 4 ? 'up' : 'down'),
+  render: i => {
+    const shut = i % 6 >= 4
+    let art = stamp(EMPTY(), ['KKKKKK', 'KwwwwK', 'KKKKKK', 'KwwKKK'], 1, 4)
+    art = stamp(art, shut ? ['KWKWKW'] : ['...KWK', '.KWK..', 'KW....'], 1, shut ? 3 : 1)
+    return pixels(art, { K: '#2A2E37', W: WHITE, w: GRAY }, i % 6 === 4 ? [[7, 1, '✦', '#F2D04B']] : [])
+  },
+}
+
+export const PROPS: Record<string, Prop> = { computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower, approve, binoculars, cart, easel, run, trash, bulb, coins, server, phone, plane, bug, scanner, clock, chart, gears, lock, box, clapper }
+const PROP_NAMES = Object.keys(PROPS).filter(n => n !== 'umbrella')
 
 // ---------------------------------------------------------------------------
 // Scenes paint the whole row behind (or, for water, in front of) Clawd.
@@ -512,6 +769,25 @@ const TOPICS: [RegExp, Topic][] = [
   [/\b(umbrellas?)\b/, { prop: 'umbrella', scene: 'rain' }],
   [/\b(pancakes?|pan)\b/, { prop: 'pan', outfit: 'chef' }],
   [/\b(magnifier|magnifying)\b/, { prop: 'magnifier' }],
+  [/^\s*(yes|yep|yeah|ok|okay|go|sure|do it|continue|proceed|approved?|lgtm)\b/, { prop: 'approve' }],
+  [/\b(scan|scanner|barcode|qr)\b/, { prop: 'scanner' }],
+  [/\b(shop|store|orders?|customers?|delivery|cart|checkout|products?)\b/, { prop: 'cart' }],
+  [/\b(payments?|pay|pricing|price|invoice|billing|money|refund)\b/, { prop: 'coins' }],
+  [/\b(api|requests?|endpoints?|webhooks?|fetch|response|backend)\b/, { prop: 'server' }],
+  [/\b(phone|mobile|android|ios|app)\b/, { prop: 'phone' }],
+  [/\b(email|mail|message|notify|notification|slack|send)\b/, { prop: 'plane' }],
+  [/\b(error|bugs?|broken|crash|crashing|failing|fails?)\b/, { prop: 'bug' }],
+  [/\b(remove|delete|clean|cleanup|clear|uninstall|drop)\b/, { prop: 'trash' }],
+  [/\b(plan|idea|ideas|brainstorm|strategy|approach)\b/, { prop: 'bulb' }],
+  [/\b(run|running|start|execute|restart|serve)\b/, { prop: 'run' }],
+  [/\b(show|see|open|view|display|preview)\b/, { prop: 'binoculars' }],
+  [/\b(page|button|menu|theme|screen|ui|ux|layout|colou?r|icon)\b/, { prop: 'easel' }],
+  [/\b(data|dashboard|chart|graph|analytics|report|metrics|stats)\b/, { prop: 'chart' }],
+  [/\b(settings|config|configure|env|options?)\b/, { prop: 'gears' }],
+  [/\b(auth|login|password|token|security|secure|permissions?|keys?)\b/, { prop: 'lock' }],
+  [/\b(install|installed|extensions?|package|plugins?|dependenc(y|ies)|npm)\b/, { prop: 'box' }],
+  [/\b(video|animation|gif|reel|film|movie)\b/, { prop: 'clapper' }],
+  [/\b(time|schedule|cron|deadline|today|tomorrow)\b/, { prop: 'clock' }],
   [/\b(learn|teach|explain|tutorial|lesson|class|course|school|study|onboard|onboarding|standup|meeting)\b/, { outfit: 'graduate', crew: 'class' }],
   [/\b(family|kids|children|parents?|mom|dad|baby|babies|team|together|friends)\b/, { crew: 'family' }],
   [/\b(play|playing|ball|catch|pair|pairing|collab|collaborate|buddy|buddies)\b/, { crew: 'catch' }],
@@ -546,6 +822,18 @@ const TOPICS: [RegExp, Topic][] = [
   [/\b(fix|build|implement|refactor|edit|change|add|make|create|write|tool|update|install|setup|set up)\b/, { prop: 'hammer' }],
   [/\?\s*$|^\s*(how|what|why|when|where|which|can|should|is|does|do)\b/, { prop: 'think' }],
 ]
+
+// Every topic a prompt matches, in order; a prompt cycles through them, one per lap.
+export const topicsOf = (text: string): Topic[] => {
+  const t = text.toLowerCase()
+  const seen = new Set<string>()
+  return TOPICS.filter(([re]) => re.test(t))
+    .map(([, topic]) => topic)
+    .filter(topic => {
+      const key = JSON.stringify(topic)
+      return seen.has(key) ? false : (seen.add(key), true)
+    })
+}
 
 export const topicOf = (text: string): Topic | null => {
   const t = text.toLowerCase()
@@ -587,17 +875,33 @@ const board = (word: string, i: number): Cell[][] => {
   ]
 }
 
-export const scene = (range: number, b: number, seed: number, topic: Topic | null): Scene => {
+// An item pops in with a sparkle as the activity starts, and goes in a puff as it ends,
+// so one activity hands over to the next.
+const transition = (rows: Cell[][], i: number): Cell[][] => {
+  if (i >= 2 && i < ACT - 2) return rows
+  const puff = i >= ACT - 2
+  if (puff && i === ACT - 1) return rows.map(() => cells(['']))
+  return rows.map((r, y) =>
+    r.map((c, x): Cell => {
+      const mark = puff ? (x + y) % 3 === 0 && c.ch !== ' ' : (x === 0 && y === 0) || (x === 7 && y === 1) || (x === 1 && y === 3)
+      if (puff) return mark ? { ch: '·', fg: LIGHT } : c.ch !== ' ' ? { ch: '˙', fg: LIGHT } : c
+      return mark && c.ch === ' ' ? { ch: i === 0 ? '✦' : '✧', fg: '#F2D04B' } : c
+    }),
+  )
+}
+
+export const scene = (range: number, b: number, seed: number, topics: Topic | Topic[] | null): Scene => {
   const legs = Math.max(0, range)
-  // The topic sets the lap; with no topic, each lap draws its own scene, crew and prop.
-  const lapGuess = Math.floor(b / Math.max(1, 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK))
-  const crew: Crew | null = topic ? (topic.crew ?? null) : ([null, null, null, 'family', 'catch', 'class'] as const)[(seed + lapGuess * 5) % 6] ?? null
+  const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
+  const c = Math.floor(b / cycle)
+  // A prompt that matches several topics does one per lap, in turn.
+  const list = Array.isArray(topics) ? topics : topics ? [topics] : []
+  const topic = list.length ? (list[c % list.length] ?? null) : null
+  const crew: Crew | null = topic ? (topic.crew ?? null) : ([null, null, null, 'family', 'catch', 'class'] as const)[(seed + c * 5) % 6] ?? null
   const students = Math.min(4, Math.floor((range - PROP_W - 2) / (TINY_W + 1)))
   const need = crew === 'catch' ? GAP + W : crew === 'class' && students > 0 ? PROP_W + 2 + students * (TINY_W + 1) : PROP_W + 1
   const room = range >= need
   const mid = room ? Math.floor((range - need) / 2) : Math.max(0, range)
-  const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
-  const c = Math.floor(b / cycle)
   const trick = TRICKS[TRICK_NAMES[(seed + c) % TRICK_NAMES.length] ?? 'jump'] ?? jump
   const bg = topic ? (topic.scene ?? null) : ([null, null, ...SCENE_NAMES][(seed + c * 3) % (SCENE_NAMES.length + 2)] ?? null)
   const swim = bg === 'swim'
@@ -654,7 +958,7 @@ export const scene = (range: number, b: number, seed: number, topic: Topic | nul
     }
     const frame: Frame = { rows: front(prop?.pose(i) ?? so('open')), offset: 0 }
     if (!room || !prop) return { ...base, frame, prop: null }
-    return { ...base, frame, prop: { rows: prop.render(i), dx: prop.dx ?? 0 } }
+    return { ...base, frame, prop: { rows: transition(prop.render(i), i), dx: prop.dx ?? 0 } }
   }
   const doTrick = (i: number, x: number): Scene => {
     const k = trick[i] ?? NO
@@ -720,10 +1024,13 @@ export const apart = (color: string | undefined, body: string): string | undefin
 // Clawd's body color: the prompt's own pick, unless the item it holds or the hat it
 // wears is close to it; then the next color that stands apart from all of them, so
 // items keep their natural colors (a pink umbrella, a gold trophy).
-export const bodyFor = (seed: number, topic: Topic | null, outfit: Outfit): string => {
+export const bodyFor = (seed: number, topics: Topic | Topic[] | null, outfit: Outfit): string => {
   const avoid = new Set<string>()
-  const prop = topic?.prop ? PROPS[topic.prop] : undefined
-  for (let i = 0; prop && i < 40; i++) for (const c of prop.render(i).flat()) for (const v of [c.fg, c.bg]) if (v?.startsWith('#')) avoid.add(v)
+  const list = Array.isArray(topics) ? topics : topics ? [topics] : []
+  for (const topic of list) {
+    const prop = topic.prop ? PROPS[topic.prop] : undefined
+    for (let i = 0; prop && i < 40; i++) for (const c of prop.render(i).flat()) for (const v of [c.fg, c.bg]) if (v?.startsWith('#')) avoid.add(v)
+  }
   for (const [, kind] of outfit.hat ?? []) if (kind.startsWith('#')) avoid.add(kind)
   const order = COLORS.map((_, k) => COLORS[(seed + k) % COLORS.length] ?? '#D77757')
   return order.find(c => [...avoid].every(a => distance(a, c) >= 90)) ?? order[0] ?? '#D77757'
@@ -924,9 +1231,10 @@ export const register: Register = on => {
     // Seeded by the text, not the message id: a fresh prompt's id changes once it is stored,
     // which would re-roll its color and outfit a moment after you send it.
     const seed = hash(e.props.text)
-    const topic = topicOf(e.props.text)
+    const topics = topicsOf(e.props.text)
+    const topic = topics.find(t => t.outfit) ?? null
     const outfit = OUTFITS.find(o => o.name === topic?.outfit) ?? OUTFITS[(seed >>> 12) % OUTFITS.length] ?? { name: 'plain' }
-    const body = bodyFor(seed, topic, outfit)
+    const body = bodyFor(seed, topics, outfit)
     const b = e.props.onScreen === null ? 0 : await read($, beat)
 
     const cols = Math.max(40, (e.viewport?.columns ?? 80) - 2)
@@ -934,7 +1242,7 @@ export const register: Register = on => {
     const textW = Math.min(longest + 4, cols - W - PROP_W - 4)
     const range = cols - textW - W - 1
     const start = e.props.onScreen === null ? b : startBeat(e.requestId, e.props.text, b)
-    const s = scene(range, b - start, seed >>> 8, topic)
+    const s = scene(range, b - start, seed >>> 8, topics)
     const grid = paint(s, range + W, outfit, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)

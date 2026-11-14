@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { COLORS, OUTFITS, PROPS, TRICKS, apart, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf } from '../hooks/register'
+import { COLORS, OUTFITS, PROPS, TRICKS, apart, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -17,7 +17,7 @@ test('every trick frame and hat is 9 columns wide', () => {
 
 test('prompt topics pick props and scenes', () => {
   expect(topicOf('commit and push this')).toEqual({ prop: 'computer' })
-  expect(topicOf('fix the login bug')).toEqual({ prop: 'hammer' })
+  expect(topicsOf('fix the login bug').map(t => t.prop)).toEqual(['bug', 'lock', 'hammer'])
   expect(topicOf('deploy to prod')).toEqual({ prop: 'rocket', scene: 'space' })
   expect(topicOf('lets go swimming')).toEqual({ scene: 'swim' })
   expect(topicOf('make the css pretty')).toEqual({ prop: 'flower', scene: 'garden' })
@@ -202,4 +202,29 @@ test('naming an item shows it', () => {
   expect(topicOf('laptop')).toEqual({ prop: 'computer' })
   expect(topicOf('umbrella?')).toEqual({ prop: 'umbrella', scene: 'rain' })
   expect(topicOf('rocket')).toEqual({ prop: 'rocket', scene: 'space' })
+})
+
+test('common asks have their own activity', () => {
+  const prop = (text: string) => topicOf(text)?.prop
+  expect(prop('yes')).toBe('approve')
+  expect(prop('show me the orders page')).toBe('cart')
+  expect(prop('remove that file')).toBe('trash')
+  expect(prop('the payment failed')).toBe('coins')
+  expect(prop('call the api')).toBe('server')
+  expect(prop('scan the barcode')).toBe('scanner')
+  expect(prop('there is an error')).toBe('bug')
+  expect(prop('run it')).toBe('run')
+})
+
+test('a prompt with several topics does one per lap, handing over with a sparkle and a puff', () => {
+  const topics = topicsOf('check the shop orders')
+  expect(topics.map(t => t.prop)).toEqual(['cart', 'magnifier'])
+  const lap = 2 * 30 + 10 + 36 + 30
+  expect(scene(30, 0, 1, topics).prop).not.toBeNull()
+  const props = [0, lap].map(b => JSON.stringify(scene(30, b + 5, 1, topics).prop?.rows))
+  expect(props[0]).not.toBe(props[1])
+  const first = scene(30, 0, 1, topics).prop?.rows.flat().map(c => c.ch).join('') ?? ''
+  expect(first).toContain('✦')
+  const last = scene(30, 35, 1, topics).prop?.rows.flat().map(c => c.ch).join('') ?? ''
+  expect(last.trim()).toBe('')
 })

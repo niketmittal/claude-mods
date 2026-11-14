@@ -4,7 +4,7 @@ Clawd, the block mascot from Claude Code's welcome screen, lives on every prompt
 
 ![Four prompts, four Clawds: coffee, a game of catch, a classroom, a rocket launch in space](media/hero.gif)
 
-The moment you send a prompt, its Clawd starts on the activity that fits it. Then it walks the row, turns around, does one of Claude Code's own Clawd tricks on the way back, and starts the next lap. A prompt with no topic gets a new activity, scene and sometimes a crew every lap.
+The moment you send a prompt, its Clawd starts on the activity that fits it. Then it walks the row, turns around, does one of Claude Code's own Clawd tricks on the way back, and starts the next lap. A prompt that matches several topics does them one per lap, the item popping in with a sparkle and leaving in a puff; a prompt with no topic gets a new activity, scene and sometimes a crew every lap. The topics come from what people most often ask Claude Code for.
 
 | | |
 | --- | --- |
@@ -22,6 +22,16 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 | ![](media/sleep.gif)<br>`sleep`, `later`, `tired`: naps under the moon | ![](media/underwater.gif)<br>`fish`, `dive`: bubbles, fish and seaweed |
 | ![](media/city.gif)<br>`docker`, `k8s`, `server`: laptop before a city skyline | ![](media/sunny.gif)<br>`summer`, `vacation`: sombrero in the sun |
 | ![](media/ninja.gif)<br>`ninja`, `secret`: ninja at night | ![](media/wizard.gif)<br>`magic`, `wizard`, `spell`: wizard among the stars |
+| ![](media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | ![](media/binoculars.gif)<br>`show`, `open`, `view`: looks through binoculars |
+| ![](media/cart.gif)<br>`shop`, `order`, `customer`: a cart fills with parcels | ![](media/easel.gif)<br>`page`, `button`, `theme`, `ui`: paints a canvas |
+| ![](media/run.gif)<br>`run`, `start`, `execute`: play, progress bar, done | ![](media/trash.gif)<br>`remove`, `delete`, `clean`: tosses paper in the bin |
+| ![](media/bulb.gif)<br>`plan`, `idea`, `brainstorm`: a light bulb flickers on | ![](media/coins.gif)<br>`payment`, `pricing`, `money`: coins stack up |
+| ![](media/server.gif)<br>`api`, `request`, `webhook`: request out, response back | ![](media/phone.gif)<br>`phone`, `mobile`, `app`: a buzzing phone |
+| ![](media/plane.gif)<br>`email`, `message`, `send`: a paper plane flies off | ![](media/bug.gif)<br>`error`, `bug`, `crash`: stomps a bug |
+| ![](media/scanner.gif)<br>`scan`, `barcode`, `qr`: a laser sweeps a barcode | ![](media/clock.gif)<br>`time`, `schedule`, `deadline`: an alarm clock rings |
+| ![](media/chart.gif)<br>`data`, `dashboard`, `chart`: bars grow | ![](media/gears.gif)<br>`settings`, `config`: gears turn |
+| ![](media/lock.gif)<br>`login`, `password`, `security`: a key unlocks a padlock | ![](media/box.gif)<br>`install`, `extension`, `package`: a parcel opens |
+| ![](media/clapper.gif)<br>`video`, `animation`, `gif`: a clapperboard snaps | ![](media/handover.gif)<br>several topics in one prompt: one per lap, swapping with a sparkle |
 
 ### Tricks
 

@@ -790,8 +790,29 @@ const clapper: Prop = {
   },
 }
 
-export const PROPS: Record<string, Prop> = { computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower, approve, chest, cart, easel, run, trash, bulb, coins, server, phone, plane, bug, scanner, clock, chart, gears, lock, box, clapper }
-const PROP_NAMES = Object.keys(PROPS).filter(n => n !== 'umbrella')
+// "hi", "hello": Clawd waves at you and says hi back by name in a speech bubble.
+// The name is BUDDY_NAME if set, else the account name, capitalized (set at session start).
+let greetName = ''
+export const setGreetName = (name: string | undefined) => {
+  const n = (name ?? '').trim().split(/[\s._-]+/)[0] ?? ''
+  greetName = n ? n[0]!.toUpperCase() + n.slice(1, 7) : ''
+}
+const hello: Prop = {
+  pose: i => so(i % 6 === 5 ? 'wink' : 'right', i % 2 ? 'one-up' : 'up'),
+  render: i => {
+    if (i % 12 >= 9) return pixels(EMPTY(), {})
+    const art = ['WWWWWWWW', 'WWWWWWWW', 'WWWWWWWW', 'WWWWWWWW', 'W.......', '........', '........', '........']
+    const ink = '#2A2E37'
+    const top = greetName ? 'hi,' : 'hi!'
+    const bottom = greetName ? `${greetName}!` : ''
+    const text: Overlay[] = [...[...top].map((ch, k): Overlay => [1 + k, 0, ch, ink]), ...[...bottom].map((ch, k): Overlay => [Math.max(0, Math.floor((8 - bottom.length) / 2)) + k, 1, ch, k === bottom.length - 1 ? '#E0607E' : ink])]
+    return pixels(art, { W: '#F0F0F0' }, text)
+  },
+}
+
+export const PROPS: Record<string, Prop> = { hello, computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower, approve, chest, cart, easel, run, trash, bulb, coins, server, phone, plane, bug, scanner, clock, chart, gears, lock, box, clapper }
+// A prompt with no topic gets a light, fun item each lap, never a work one (a scanner, a server).
+const PROP_NAMES = ['music', 'heart', 'balloon', 'flower', 'coffee', 'book', 'guitar', 'bulb', 'trophy', 'rocket', 'camera', 'pan', 'hello']
 
 // ---------------------------------------------------------------------------
 // Scenes paint the whole row behind (or, for water, in front of) Clawd.
@@ -803,6 +824,7 @@ export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Cre
 
 const TOPICS: [RegExp, Topic][] = [
   // An item named outright shows that item.
+  [/^\s*(hi|hii+|hello|hey|heya|yo|hola|namaste|gm|good (morning|afternoon|evening))\b/, { prop: 'hello' }],
   [/\b(hammer|nails?|hammering)\b/, { prop: 'hammer' }],
   [/\b(laptop|computer|keyboard|typing)\b/, { prop: 'computer' }],
   [/\b(mug|cup)\b/, { prop: 'coffee' }],
@@ -1378,6 +1400,7 @@ export const COLORS = ['#D77757', '#E8A33D', '#6CC24A', '#4FA3E0', '#B57EDC', '#
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
+    setGreetName((await $.env.get('BUDDY_NAME')) ?? (await $.env.get('USER')))
     // ponytail: one shared beat redraws every on-screen prompt each tick; rows off screen skip it.
     $.clock.every(BEAT_MS, () => update($, beat, b => (b + 1) % 1_000_000))
     return next(e)

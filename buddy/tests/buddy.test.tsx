@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { COLORS, EARRINGS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, earringFor, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
+import { COLORS, EARRINGS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, earringFor, setGreetName, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -27,7 +27,7 @@ test('prompt topics pick props and scenes', () => {
   expect(topicOf('pair with me on this')).toEqual({ crew: 'catch' })
   expect(topicOf('family dinner')).toEqual({ crew: 'family' })
   expect(topicOf('read the docs')).toEqual({ prop: 'book' })
-  expect(topicOf('hello')).toBeNull()
+  expect(topicOf('banana')).toBeNull()
 })
 
 test('Clawd walks the lane, stops for its activity with a prop, and stays in bounds', () => {
@@ -298,4 +298,27 @@ test('every hat and item stands out against the prompt bar', () => {
     for (let i = 0; i < 30; i++)
       for (const c of p.render(i).flat())
         if (c.fg && !c.bg && c.ch !== ' ' && !INSIDE.has(c.fg)) expect([n, c.fg, ratio(c.fg, BAR) >= 2.2]).toEqual([n, c.fg, true])
+})
+
+test('greetings wave hello; prompts with no topic get light, fun items only', () => {
+  expect(topicOf('hi')).toEqual({ prop: 'hello' })
+  expect(topicOf('hello there')).toEqual({ prop: 'hello' })
+  const work = ['scanner', 'server', 'lock', 'trash', 'cart', 'coins', 'chart', 'gears', 'box', 'phone', 'clapper', 'run', 'approve', 'chest', 'bug']
+  for (let b = 0; b < 3000; b += 37) {
+    const s = scene(40, b, b * 7, null)
+    const rows = JSON.stringify(s.prop?.rows ?? null)
+    for (const w of work) {
+      const sample = JSON.stringify(PROPS[w]?.render(0))
+      if (s.prop && sample === rows) throw new Error(`work prop ${w} on a no-topic prompt`)
+    }
+  }
+})
+
+test('saying hi gets a hi back by name', () => {
+  setGreetName('niket')
+  const text = (PROPS.hello?.render(0) ?? []).map(r => r.map(c => c.ch).join('')).join('|')
+  expect(text).toContain('hi,')
+  expect(text).toContain('Niket!')
+  setGreetName(undefined)
+  expect((PROPS.hello?.render(0) ?? []).map(r => r.map(c => c.ch).join('')).join('|')).toContain('hi!')
 })

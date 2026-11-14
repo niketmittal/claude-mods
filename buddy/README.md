@@ -8,6 +8,7 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 
 | | |
 | --- | --- |
+| ![](media/hello.gif)<br>`hi`, `hello`, `hey`: waves and says hi back by your name | ![](media/chest.gif)<br>`show`, `open`, `view`: opens a treasure chest |
 | ![](media/coffee.gif)<br>`coffee`, `mug`: sips from a mug | ![](media/catch.gif)<br>`pair`, `play`, `collab`: plays catch with a friend |
 | ![](media/class.gif)<br>`teach`, `explain`, `learn`: teaches a class of tiny Clawds | ![](media/family.gif)<br>`family`, `team`, `friends`: tiny Clawds hop along behind |
 | ![](media/laptop.gif)<br>`git`, `commit`, `laptop`: types code on a laptop | ![](media/hammer.gif)<br>`fix`, `build`, `hammer`: hammers a nail into a board |
@@ -22,7 +23,7 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 | ![](media/sleep.gif)<br>`sleep`, `later`, `tired`: naps under the moon | ![](media/underwater.gif)<br>`fish`, `dive`: bubbles, fish and seaweed |
 | ![](media/city.gif)<br>`docker`, `k8s`, `server`: laptop before a city skyline | ![](media/sunny.gif)<br>`summer`, `vacation`: sombrero in the sun |
 | ![](media/ninja.gif)<br>`ninja`, `secret`: ninja at night | ![](media/wizard.gif)<br>`magic`, `wizard`, `spell`: wizard among the stars |
-| ![](media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | ![](media/chest.gif)<br>`show`, `open`, `view`: opens a treasure chest |
+| ![](media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | |
 | ![](media/cart.gif)<br>`shop`, `order`, `customer`: a cart fills with parcels | ![](media/easel.gif)<br>`page`, `button`, `theme`, `ui`: paints a canvas |
 | ![](media/run.gif)<br>`run`, `start`, `execute`: play, progress bar, done | ![](media/trash.gif)<br>`remove`, `delete`, `clean`: tosses paper in the bin |
 | ![](media/bulb.gif)<br>`plan`, `idea`, `brainstorm`: a light bulb flickers on | ![](media/coins.gif)<br>`payment`, `pricing`, `money`: coins stack up |
@@ -69,6 +70,7 @@ Type `hats`, `outfits` or `fashion` for a fashion show: Clawd twirls on the spot
 - Terminal only for now. Only prompts you typed get a Clawd; task notifications and other messages keep the default look.
 - Each prompt row is four lines tall: Clawd plus a row of air for jumps, hats, thought bubbles and the ball. The prompt text takes its Clawd's color.
 - A prompt's look comes from its text, so the same prompt always looks the same.
+- Clawd greets you by your account name; set `BUDDY_NAME` to choose another.
 - In the terminal's normal (non-fullscreen) view, prompts that have scrolled into the history may stop moving. Fullscreen animates every prompt on screen.
 - The GIFs are rendered from the mod's own frames.
 

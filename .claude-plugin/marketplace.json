@@ -1,0 +1,14 @@
+{
+  "name": "niket-claude-mods",
+  "owner": {
+    "name": "niket"
+  },
+  "plugins": [
+    {
+      "name": "eta",
+      "source": "./",
+      "description": "Live, self-calibrating ETA for the current turn, done pings, and background side: tasks."
+    }
+  ],
+  "description": "Claude Code mods by Niket"
+}

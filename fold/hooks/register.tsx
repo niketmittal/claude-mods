@@ -1,28 +1,62 @@
 import { atom, read, update } from 'claude-code'
-import type { Register } from 'claude-code'
+import type { EngineInterface, Register } from 'claude-code'
 
 import type { FoldAll, FoldedById } from '../types'
 
 const byId = atom({ plugin: 'fold', key: 'byId' } as const, {})
 const all = atom({ plugin: 'fold', key: 'all' } as const, null)
+const summaries = atom({ plugin: 'fold', key: 'summaries' } as const, {})
 
-export const LONG = 2 // any answer of two lines or more gets a toggle (one line has nothing to fold)
-export const KEEP = 3 // lines a folded answer still shows
+export const LONG = 2 // any answer of two lines or more can fold (one line has nothing to fold)
 export const HREF = 'https://fold.toggle/' // the toggle link's address; never opened, the click is ours
+const PENDING = '…' // a summary being written
+const SUMMARY_SYSTEM =
+  'Summarize this reply from an AI coding assistant in ONE line of at most 90 characters: the key result, answer or decision. Plain text, no markdown, no quotes, no lead-in.'
 
 export const isFolded = (ids: FoldedById, everything: FoldAll, id: string) => ids[id] ?? everything ?? false
 
+export const textKey = (text: string) => {
+  let h = 2166136261
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619)
+  return (h >>> 0).toString(36)
+}
+
+const firstLine = (text: string) => text.split('\n').find(l => l.trim())?.replace(/^[#>*\-\s]+/, '').trim() ?? ''
+
+// Writes the one-line summary of an answer once, and keeps it.
+async function summarize($: EngineInterface, text: string) {
+  const key = textKey(text)
+  const have = (await read($, summaries))[key]
+  if (have) return
+  await update($, summaries, m => ({ ...m, [key]: PENDING }))
+  const answer = await $.model.complete({ model: 'haiku', system: SUMMARY_SYSTEM, prompt: text.slice(0, 8000), maxTokens: 60 })
+  const line = answer.isAnswered ? answer.text.split('\n')[0]?.trim().replace(/^["']|["']$/g, '').slice(0, 120) : ''
+  await update($, summaries, m => ({ ...m, [key]: line || firstLine(text) }))
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'fold', description: 'Fold every long answer to its first lines.' })
+    await $.command.register({ name: 'fold', description: 'Fold every answer to a one-line summary.' })
     await $.command.register({ name: 'unfold', description: 'Open every folded answer again.' })
     return next(e)
   })
 
+  // Each finished answer gets its summary written right away, so folding it is instant.
+  on('turn.complete', async ($, e, next) => {
+    const result = await next(e)
+    if (e.agentId === undefined && e.answer && e.answer.split('\n').length >= LONG) $.clock.after(0, () => void summarize($, e.answer))
+    return result
+  }).catch(($, e, next) => next(e))
+
   on('command.run', { command: 'fold' }, async $ => {
     await update($, byId, () => ({}))
     await update($, all, () => true)
-    return { text: 'Long answers folded. /unfold to open them, or click one to open just it.' }
+    // Summarize the recent answers that have none yet, one after another.
+    const texts = (await $.session.messages()).filter(m => m.role === 'assistant' && m.text.split('\n').length >= LONG).map(m => m.text).slice(-30)
+    $.clock.after(0, async () => {
+      for (const t of texts.reverse()) await summarize($, t)
+    })
+    return { text: 'Answers folded to one-line summaries. Click ▸ on one to open it, or /unfold.' }
   })
 
   on('command.run', { command: 'unfold' }, async $ => {
@@ -32,19 +66,21 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
-    const lines = e.props.text.split('\n')
-    if (e.surface !== 'terminal' || e.props.isSummary || lines.length < LONG) return next(e)
+    const text = e.props.text
+    if (e.surface !== 'terminal' || e.props.isSummary || text.split('\n').length < LONG) return next(e)
     const id = e.requestId
     const everything = await read($, all)
     const folded = isFolded(await read($, byId), everything, id)
-    const toggle = () => update($, byId, ids => ({ ...ids, [id]: !isFolded(ids, everything, id) }))
+    const summary = (await read($, summaries))[textKey(text)]
+    const toggle = () => {
+      void summarize($, text)
+      void update($, byId, ids => ({ ...ids, [id]: !isFolded(ids, everything, id) }))
+    }
     const { Box, Markdown, Text } = $.ui.resolve(e)
-    // The toggle is a link at the end of the answer: a click on a link in a reply is what
-    // the fullscreen terminal hands to a plugin (a ctrl/cmd-click would open it instead).
-    const keep = Math.min(KEEP, lines.length - 1)
-    const more = lines.length - keep
-    const toggleLink = folded ? `[▸ ${more} more line${more === 1 ? '' : 's'}](${HREF})` : `[▾ fold](${HREF})`
-    const shown = (folded ? lines.slice(0, keep).join('\n') : e.props.text) + '\n\n' + toggleLink
+    // The toggle is a link: a plain click on a link in a reply is what the fullscreen
+    // terminal hands to a plugin (a ctrl/cmd-click would open it instead).
+    const line = summary && summary !== PENDING ? summary : summary === PENDING ? `${firstLine(text)}  (summarizing…)` : firstLine(text)
+    const shown = folded ? `${line}  [▸ full answer](${HREF})` : `${text}\n\n[▾ fold](${HREF})`
     return (
       <Box flexDirection="row">
         <Box width={2} flexShrink={0}>

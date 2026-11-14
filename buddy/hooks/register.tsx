@@ -691,6 +691,19 @@ const FLOWER_COLORS = [PINK, BLONDE, '#B57EDC']
 
 // The row as a grid of cells: the scene, then Clawd dressed in its outfit, then
 // the prop, then anything in front (water).
+// Anything Clawd holds or wears must stand out from Clawd itself: a color too close
+// to its body color is swapped for whichever of these is furthest from it.
+const CONTRAST = ['#4FA3E0', '#E0607E', '#F2D04B', '#6CC24A', '#B57EDC', '#F5F5F5', '#3CC8B4']
+const rgb = (c: string) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16))
+const distance = (a: string, b: string) => {
+  const [x, y] = [rgb(a), rgb(b)]
+  return Math.hypot((x[0] ?? 0) - (y[0] ?? 0), (x[1] ?? 0) - (y[1] ?? 0), (x[2] ?? 0) - (y[2] ?? 0))
+}
+export const apart = (color: string | undefined, body: string): string | undefined => {
+  if (!color || !color.startsWith('#') || distance(color, body) >= 90) return color
+  return [...CONTRAST].sort((a, b) => distance(b, body) - distance(a, body))[0]
+}
+
 export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: number, seed: number): Cell[][] => {
   const h = 4
   const g: Cell[][] = Array.from({ length: h }, () => Array.from({ length: width }, () => ({ ch: ' ' })))
@@ -804,7 +817,7 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
           }
           if (kind === 'e' && ch !== '█') put(x, y, { ch, fg: color, bg: EYE_BG })
           else if (kind === 'l') put(x, y, { ch, fg: EYE_BG, bg: color })
-          else if (ch !== ' ') put(x, y, { ch, fg: kind.startsWith('#') ? kind : color })
+          else if (ch !== ' ') put(x, y, { ch, fg: kind.startsWith('#') ? (apart(kind, color) ?? kind) : color })
           else put(x, y, { ch: ' ' })
           x++
         }
@@ -837,7 +850,7 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
   const prop = s.prop
   prop?.rows.forEach((r, i) =>
     r.forEach((c, j) => {
-      if (c.ch !== ' ' || c.bg) put(s.x + W + prop.dx + j, i, c)
+      if (c.ch !== ' ' || c.bg) put(s.x + W + prop.dx + j, i, { ...c, ...(c.fg ? { fg: apart(c.fg, body) } : {}), ...(c.bg ? { bg: apart(c.bg, body) } : {}) })
     }),
   )
   for (const e of s.extras) if (e.kind === 'ball') put(e.x, Math.max(0, h - 2 - e.y), { ch: '●', fg: '#E0607E' })

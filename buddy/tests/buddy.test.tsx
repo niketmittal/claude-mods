@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { OUTFITS, PROPS, TRICKS, draw, front, paint, scene, startBeat, tiny, topicOf } from '../hooks/register'
+import { COLORS, OUTFITS, PROPS, TRICKS, apart, draw, front, paint, scene, startBeat, tiny, topicOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -174,5 +174,23 @@ test('the coffee mug is one line tall', () => {
     const rows = PROPS.coffee?.render(i) ?? []
     const mugRows = rows.filter(r => r.some(c => c.ch === '◗'))
     expect(mugRows).toHaveLength(1)
+  }
+})
+
+test('what Clawd holds or wears never matches its own color', () => {
+  expect(apart('#E0607E', '#E0607E')).not.toBe('#E0607E') // pink umbrella on a pink Clawd
+  expect(apart('#E0607E', '#D77757')).not.toBe('#E0607E') // pink on Clawd orange is too close too
+  expect(apart('#F5F5F5', '#D77757')).toBe('#F5F5F5') // white mug on orange is fine
+  const beanie = OUTFITS.find(o => o.name === 'beanie') ?? { name: 'plain' }
+  for (const body of COLORS) {
+    const s = scene(40, 0, 1, { prop: 'umbrella' })
+    const g = paint(s, 49, beanie, body, 0, 1)
+    const clawdX = s.x
+    // every cell outside Clawd's own columns that is colored must differ from the body color
+    g.forEach(row => row.forEach((c, x) => {
+      if (x < clawdX || x > clawdX + 8) { if (c.fg && c.ch !== ' ') expect(c.fg).not.toBe(body) }
+    }))
+    // the hat row over Clawd is not in Clawd's color either
+    for (const c of g[0]?.slice(clawdX, clawdX + 9) ?? []) if (c.ch !== ' ' && c.fg) expect(c.fg).not.toBe(body)
   }
 })

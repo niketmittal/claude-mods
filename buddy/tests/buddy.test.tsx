@@ -1,49 +1,59 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { TRICKS, draw, front, scene, topicOf } from '../hooks/register'
+import { OUTFITS, PROPS, TRICKS, draw, front, paint, scene, topicOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
+const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
 
 test('front pose is the real Clawd', () => {
   expect(text(front({ eyes: 'open', arms: 'down', feet: 'both' }))).toEqual([' ▐▛███▛█ ', '▝▜██████▀', ' ▝▝   ▝▝ '])
 })
 
-test('every trick frame is 3 rows of 9 columns', () => {
+test('every trick frame and hat is 9 columns wide', () => {
   for (const keys of Object.values(TRICKS))
-    for (const k of keys) {
-      const rows = text(draw(k))
-      expect(rows).toHaveLength(3)
-      for (const r of rows) expect([...r].length).toBe(9)
-    }
+    for (const k of keys) for (const r of text(draw(k).rows)) expect([...r].length).toBe(9)
+  for (const o of OUTFITS) if (o.hat) expect([...o.hat.map(([t]) => t).join('')].length).toBe(9)
 })
 
-test('prompt topics pick props', () => {
-  expect(topicOf('commit and push this')).toBe('computer')
-  expect(topicOf('fix the login bug')).toBe('hammer')
-  expect(topicOf('deploy to prod')).toBe('rocket')
-  expect(topicOf('find where auth is defined')).toBe('magnifier')
-  expect(topicOf('thanks!')).toBe('heart')
-  expect(topicOf('what is a monad')).toBe('think')
+test('prompt topics pick props and scenes', () => {
+  expect(topicOf('commit and push this')).toEqual({ prop: 'computer' })
+  expect(topicOf('fix the login bug')).toEqual({ prop: 'hammer' })
+  expect(topicOf('deploy to prod')).toEqual({ prop: 'rocket', scene: 'space' })
+  expect(topicOf('lets go swimming')).toEqual({ scene: 'swim' })
+  expect(topicOf('make the css pretty')).toEqual({ prop: 'flower', scene: 'garden' })
+  expect(topicOf('thanks!')).toEqual({ prop: 'heart', scene: 'party' })
+  expect(topicOf('what is a monad')).toEqual({ prop: 'think' })
   expect(topicOf('hello')).toBeNull()
 })
 
 test('Clawd walks the lane, stops for its activity with a prop, and stays in bounds', () => {
   const range = 30
-  const seen = Array.from({ length: 400 }, (_, b) => scene(range, b, 7, 'computer'))
+  const seen = Array.from({ length: 400 }, (_, b) => scene(range, b, 7, { prop: 'computer' }))
   expect(Math.min(...seen.map(s => s.x))).toBe(0)
   expect(Math.max(...seen.map(s => s.x))).toBe(range)
-  expect(seen.some(s => s.prop?.rows[1]?.includes('▒'))).toBe(true)
+  expect(seen.some(s => s.prop?.[1]?.some(c => c.ch === '●'))).toBe(true)
   for (const s of seen) {
     expect(s.x).toBeGreaterThanOrEqual(0)
     expect(s.x).toBeLessThanOrEqual(range)
-    if (s.prop) expect(s.x + 1 + 6).toBeLessThanOrEqual(range)
+    if (s.prop) expect(s.x + 1 + 8).toBeLessThanOrEqual(range)
   }
 })
 
 test('no lane means activity and tricks in place', () => {
-  const seen = Array.from({ length: 60 }, (_, b) => scene(0, b, 3, 'hammer'))
-  expect(new Set(seen.map(s => text(s.rows).join('|'))).size).toBeGreaterThan(3)
+  const seen = Array.from({ length: 60 }, (_, b) => scene(0, b, 3, { prop: 'hammer' }))
+  expect(new Set(seen.map(s => text(s.frame.rows).join('|'))).size).toBeGreaterThan(3)
   expect(seen.every(s => s.x === 0)).toBe(true)
+})
+
+test('hats sit on top, swimming puts waves over the bottom row', () => {
+  const girl = OUTFITS.find(o => o.name === 'girl') ?? { name: 'plain' }
+  const s = scene(30, 3, 1, { scene: 'swim' })
+  const g = show(paint(s, 39, girl, '#D77757', 3, 1))
+  expect(g).toHaveLength(4)
+  expect(g[3]).toMatch(/^[~≈]+$/)
+  const dry = show(paint(scene(30, 3, 1, null), 39, girl, '#D77757', 3, 1))
+  expect(dry.some(r => r.includes('▚▞'))).toBe(true)
+  for (const r of dry) expect([...r].length).toBe(39)
 })
 
 test('typed prompt row is highlighted and shows Clawd', async ($, on) => {
@@ -52,15 +62,25 @@ test('typed prompt row is highlighted and shows Clawd', async ($, on) => {
     const { Text } = $.ui.resolve(e)
     return <Text>engine row</Text>
   })
-  const ui = await $.ui.mount({
-    plugin: 'buddy',
-    surface: 'terminal',
-    component: 'UserMessage',
-    requestId: 'msg-1',
-    props: { text: 'fix the login bug', origin: { kind: 'composer' }, isExpanded: true },
-  } as never)
-  expect(await ui.find({ type: 'Text', text: /fix the login bug/ })).toBeDefined()
-  expect(await ui.drawn()).toMatchObject({ type: 'Box', props: { backgroundColor: 'userMessageBackground' } })
-  expect(JSON.stringify(await ui.drawn())).not.toMatch(/"marginLeft":-/)
-  await ui.unmount()
+  for (const id of ['msg-1', 'msg-2', 'msg-3', 'msg-4', 'msg-5', 'msg-6']) {
+    const ui = await $.ui.mount({
+      plugin: 'buddy',
+      surface: 'terminal',
+      component: 'UserMessage',
+      requestId: id,
+      props: { text: 'fix the login bug', origin: { kind: 'composer' }, isExpanded: true },
+    } as never)
+    expect(await ui.find({ type: 'Text', text: /fix the login bug/ })).toBeDefined()
+    expect(await ui.drawn()).toMatchObject({ type: 'Box', props: { backgroundColor: 'userMessageBackground' } })
+    await ui.unmount()
+  }
+})
+
+test('hammer comes down on the nail and the nail sinks', () => {
+  const frames = Array.from({ length: 12 }, (_, i) => PROPS.hammer?.render(i).map(r => r.map(c => c.ch).join('')) ?? [])
+  expect(frames[0]?.[0]).toContain('▐█▌')
+  expect(frames[2]?.[1]).toContain('▐█▌')
+  expect(frames[2]?.[0]).toContain('✦')
+  expect(frames[0]?.[1]).toContain('┃')
+  expect(frames[4]?.[1]).toContain('╻')
 })

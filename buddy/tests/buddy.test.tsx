@@ -252,7 +252,7 @@ test('fashion show: Clawd stays put, twirls, and wears a new hat every few beats
   expect(hats.has('plain')).toBe(false)
 })
 
-test('earrings: about a third of Clawds wear one, on the right side of the head only', () => {
+test('earrings: about a third of Clawds wear one, on one side of the head only', () => {
   const worn = Array.from({ length: 300 }, (_, k) => earringFor(k * 104729 * 7919)).filter(Boolean).length
   expect(worn).toBeGreaterThan(60)
   expect(worn).toBeLessThan(160)
@@ -261,6 +261,22 @@ test('earrings: about a third of Clawds wear one, on the right side of the head 
   const withRing = paint({ ...s, frame: draw({ pose: 'default', offset: 0, x: 0 }) }, 39, { name: 'plain', earring: EARRINGS[0] }, '#D77757', 0, 1)
   const diff = withRing.flatMap((row, y) => row.map((c, x) => [x, y, c.ch, plain[y]?.[x]?.ch] as const)).filter(([, , a, b]) => a !== b)
   expect(diff).toHaveLength(1)
-  expect(diff[0]?.[0]).toBe(s.x + 8) // right of the head
+  expect(diff[0]?.[0]).toBe(s.x) // against the left side of the head
   expect(diff[0]?.[1]).toBe(1) // eye row
+})
+
+test('the earring shows in every activity pose, arms up or not', async ($, on) => {
+  mock.clock(on, { now: 0 })
+  on('ui.render', { component: 'UserMessage' }, ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine</Text>
+  })
+  for (const text of ['yes', 'build', 'teach', 'pair with me']) {
+    const ui = await $.ui.mount({
+      plugin: 'buddy', surface: 'terminal', component: 'UserMessage', requestId: 'r-' + text,
+      props: { text, origin: { kind: 'composer' }, isExpanded: true },
+    } as never)
+    expect(JSON.stringify(await ui.drawn())).toMatch(/[·°╷]/)
+    await ui.unmount()
+  }
 })

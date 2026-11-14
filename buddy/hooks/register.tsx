@@ -167,7 +167,7 @@ export const draw = (k: Key): Frame => {
 // The hat row sits above the head; hatAlt, if any, alternates with it.
 type Outfit = { name: string; hat?: Span[]; hatAlt?: Span[]; earring?: { ch: string; fg: string } }
 
-// A very small earring, one side only, worn by about a third of prompts' Clawds.
+// A very small earring, one side only (Clawd's left), worn by about a third of prompts' Clawds.
 export const EARRINGS = [
   { ch: '·', fg: '#F2C744' }, // tiny gold stud
   { ch: '·', fg: '#E6E6EE' }, // tiny silver stud
@@ -475,12 +475,20 @@ const sleep: Prop = {
     ),
 }
 
-// A thought bubble: a question, thinking dots, then an idea (and arms up).
+// Thinking: a big pixel question mark rises from Clawd's head on a trail of dots, then
+// thinking dots, then a bright exclamation mark (and arms up) for the idea.
+const QUESTION = ['WWW', '..W', '.W.', '...', '.W.']
+const EXCLAIM = ['.Y.', '.Y.', '.Y.', '...', '.Y.']
+const DOTS = ['.....', '.....', '.....', '.....', 'W.W.W']
 const think: Prop = {
   pose: i => (i % 16 >= 12 ? so('open', 'up') : so(i % 8 < 4 ? 'right' : 'left')),
   render: i => {
-    const glyph = i % 16 < 6 ? '?' : i % 16 < 12 ? '…' : '!'
-    return pixels(['...WWWW.', '..WWWWWW', '..WWWWWW', '...WWWW.', '.W......', 'W.......', '........', '........'], { W: '#E8E8E8' }, [[4, 1, glyph, '#333333']])
+    const k = i % 16
+    const glyph = k < 6 ? QUESTION : k < 12 ? DOTS : EXCLAIM
+    const bob = k < 6 && i % 2 ? 1 : 0
+    let art = stamp(EMPTY(), ['.t', 't.'], 0, 3)
+    art = stamp(art, glyph, 2, bob)
+    return pixels(art, { W: '#F0F0F0', Y: '#F2D04B', t: '#9A9AA0' })
   },
 }
 
@@ -1295,10 +1303,12 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
   const rows = shift([hat ? pad(hat) : BLANK, ...s.frame.rows], lift + (swim ? 1 : 0), h)
   if (s.frame.poof && s.frame.offset > 0) rows[0] = [[POOF[s.frame.poof], 'n']]
   sprite(rows, s.x, 0, body)
-  // The earring hangs just right of the head, on the eye row, where nothing else is.
+  // The earring hangs against the left side of the head, on the eye row: no arm ever
+  // covers that spot, so it shows in every pose and as Clawd turns.
   const eyeRow = rows.findIndex(r => r.some(([, kind]) => kind === 'e'))
-  const ear = g[eyeRow]?.[s.x + 8]
-  if (outfit.earring && eyeRow >= 0 && ear && ear.ch === ' ' && g[eyeRow]?.[s.x + 7]?.fg === body) put(s.x + 8, eyeRow, { ch: outfit.earring.ch, fg: apart(outfit.earring.fg, body) ?? outfit.earring.fg })
+  const head = eyeRow >= 0 ? (g[eyeRow] ?? []).findIndex((c, x) => x >= s.x && x < s.x + W && c.fg === body) : -1
+  if (outfit.earring && head > 0 && g[eyeRow]?.[head - 1]?.ch === ' ')
+    put(head - 1, eyeRow, { ch: outfit.earring.ch, fg: apart(outfit.earring.fg, body) ?? outfit.earring.fg })
 
   const prop = s.prop
   prop?.rows.forEach((r, i) =>

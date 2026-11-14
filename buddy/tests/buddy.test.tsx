@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { COLORS, OUTFITS, PROPS, TRICKS, apart, draw, front, paint, scene, startBeat, tiny, topicOf } from '../hooks/register'
+import { COLORS, OUTFITS, PROPS, TRICKS, apart, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -181,6 +181,8 @@ test('what Clawd holds or wears never matches its own color', () => {
   expect(apart('#E0607E', '#E0607E')).not.toBe('#E0607E') // pink umbrella on a pink Clawd
   expect(apart('#E0607E', '#D77757')).not.toBe('#E0607E') // pink on Clawd orange is too close too
   expect(apart('#F5F5F5', '#D77757')).toBe('#F5F5F5') // white mug on orange is fine
+  // a pink umbrella's prompt gets a Clawd that is not pink, so the umbrella stays pink
+  for (let seed = 0; seed < 8; seed++) expect(['#E0607E', '#D77757']).not.toContain(bodyFor(seed, { prop: 'umbrella' }, { name: 'plain' }))
   const beanie = OUTFITS.find(o => o.name === 'beanie') ?? { name: 'plain' }
   for (const body of COLORS) {
     const s = scene(40, 0, 1, { prop: 'umbrella' })

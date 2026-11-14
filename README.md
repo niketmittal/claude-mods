@@ -2,23 +2,59 @@
 
 Claude Code mods by Niket.
 
-## buddy
-
-Clawd lives on every prompt you type: its own color, its own hat, and something to do that fits what you asked. 
-
-Click here for [More →](buddy/)
-
-![Four prompts, four Clawds: coffee, a game of catch, a classroom, a rocket launch in space](buddy/media/hero.gif)
-
-## eta
-
-An accurate ETA for Claude's current work, measured from its progress, and nothing else on the line. Plus done pings and background `side:` tasks. [More →](eta/)
-
-![⏱ 3m 20s left counting down above the prompt while Claude works](eta/media/eta.gif)
-
-## Install
-
 ```
 /plugin install buddy --marketplace niketmittal/claude-mods
 /plugin install eta --marketplace niketmittal/claude-mods
 ```
+
+## buddy
+
+Clawd, the block mascot from Claude Code's welcome screen, lives on every prompt you type. Each prompt gets its own Clawd: its own color, its own hat, and something to do that fits what you asked. Scrolling back through a long session, your prompts are easy to spot.
+
+![Four prompts, four Clawds: coffee, a game of catch, a classroom, a rocket launch in space](buddy/media/hero.gif)
+
+The moment you send a prompt, its Clawd starts on the activity that fits it. Then it walks the row, turns around, does one of Claude Code's own Clawd tricks on the way back, and starts the next lap. A prompt with no topic gets a new activity, scene and sometimes a crew every lap.
+
+| | |
+| --- | --- |
+| ![](buddy/media/coffee.gif)<br>`coffee`, `mug`: sips from a mug | ![](buddy/media/catch.gif)<br>`pair`, `play`, `collab`: plays catch with a friend |
+| ![](buddy/media/class.gif)<br>`teach`, `explain`, `learn`: teaches a class of tiny Clawds | ![](buddy/media/family.gif)<br>`family`, `team`, `friends`: tiny Clawds hop along behind |
+| ![](buddy/media/laptop.gif)<br>`git`, `commit`, `laptop`: types code on a laptop | ![](buddy/media/hammer.gif)<br>`fix`, `build`, `hammer`: hammers a nail into a board |
+| ![](buddy/media/rocket.gif)<br>`deploy`, `ship`, `rocket`: launches a rocket into space | ![](buddy/media/swim.gif)<br>`swim`, `beach`, `water`: swims through the waves |
+| ![](buddy/media/flower.gif)<br>`design`, `css`, `pretty`: grows a flower in a garden | ![](buddy/media/trophy.gif)<br>`passed`, `merged`, `shipped`: trophy and fireworks |
+| ![](buddy/media/think.gif)<br>a question: thought bubble ? → … → ! | ![](buddy/media/rain.gif)<br>`rain`, `umbrella`: an umbrella in the rain |
+| ![](buddy/media/matrix.gif)<br>`code`, `hack`, `terminal`: falling matrix code | ![](buddy/media/snow.gif)<br>`christmas`, `snow`: santa hat in the snow |
+| ![](buddy/media/book.gif)<br>`read`, `docs`, `book`: reads, pages turning | ![](buddy/media/guitar.gif)<br>`guitar`, `song`, `band`: plays guitar |
+| ![](buddy/media/camera.gif)<br>`screenshot`, `photo`: camera flash | ![](buddy/media/pan.gif)<br>`cook`, `recipe`, `pancake`: flips a pancake |
+| ![](buddy/media/balloon.gif)<br>`birthday`, `balloon`: party hat and a balloon | ![](buddy/media/magnifier.gif)<br>`find`, `search`, `debug`: scans with a magnifier |
+| ![](buddy/media/love.gif)<br>`love`, `heart`, `<3`: hearts float up | ![](buddy/media/music.gif)<br>`dance`, `music`, `party`: dances to music |
+| ![](buddy/media/sleep.gif)<br>`sleep`, `later`, `tired`: naps under the moon | ![](buddy/media/underwater.gif)<br>`fish`, `dive`: bubbles, fish and seaweed |
+| ![](buddy/media/city.gif)<br>`docker`, `k8s`, `server`: laptop before a city skyline | ![](buddy/media/sunny.gif)<br>`summer`, `vacation`: sombrero in the sun |
+| ![](buddy/media/ninja.gif)<br>`ninja`, `secret`: ninja at night | ![](buddy/media/wizard.gif)<br>`magic`, `wizard`, `spell`: wizard among the stars |
+
+### Tricks
+
+Taken from Claude Code's own Clawd animations: jump, skip, spin, peekaboo, drop, waddle, look, wink, boop, tap, sneeze, turn, coin-hop, plus wave, shiver, moonwalk, bounce, doze and dab.
+
+![Clawd doing jump, spin, peekaboo, moonwalk, coin-hop, dab, sneeze and wave](buddy/media/tricks.gif)
+
+### Looks
+
+Every prompt's Clawd wears something different: 27 headwear looks or none. Some topics pick it (christmas → santa, pirate → pirate, magic → wizard, cook → chef, ninja → ninja, learn → graduation cap, birthday → party hat). Whatever Clawd holds or wears never shares its color: the item keeps its natural color and Clawd picks one that stands apart.
+
+![All the headwear: top hat, party hat, crown, girl with a bow, pigtails, princess, beanie, cowboy, halo, flower crown, chef, wizard, witch, santa, graduate, headphones, viking, ninja, pirate, bunny ears, cat ears, devil horns, propeller, cap, sombrero, alien](buddy/media/outfits.png)
+
+### Notes
+
+- Needs a Claude Code build with mods support. It does not load where an organization policy sets `allowManagedHooksOnly`.
+- Terminal only for now. Only prompts you typed get a Clawd; task notifications and other messages keep the default look.
+- Each prompt row is four lines tall: Clawd plus a row of air for jumps, hats, thought bubbles and the ball. The prompt text takes its Clawd's color.
+- A prompt's look comes from its text, so the same prompt always looks the same.
+- In the terminal's normal (non-fullscreen) view, prompts that have scrolled into the history may stop moving. Fullscreen animates every prompt on screen.
+- The GIFs are rendered from the mod's own frames.
+
+## eta
+
+An accurate ETA for Claude's current work, measured from its progress, and nothing else on the line. Plus done pings and background `side:` tasks. [Details →](eta/)
+
+![⏱ 3m 20s left counting down above the prompt while Claude works](eta/media/eta.gif)

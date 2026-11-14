@@ -706,7 +706,7 @@ const FLOWER_COLORS = [PINK, BLONDE, '#B57EDC']
 // the prop, then anything in front (water).
 // Anything Clawd holds or wears must stand out from Clawd itself: a color too close
 // to its body color is swapped for whichever of these is furthest from it.
-const CONTRAST = ['#4FA3E0', '#E0607E', '#F2D04B', '#6CC24A', '#B57EDC', '#F5F5F5', '#3CC8B4']
+const CONTRAST = ['#4FA3E0', '#E0607E', '#F2D04B', '#6CC24A', '#B57EDC', '#3CC8B4']
 const rgb = (c: string) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16))
 const distance = (a: string, b: string) => {
   const [x, y] = [rgb(a), rgb(b)]
@@ -715,6 +715,18 @@ const distance = (a: string, b: string) => {
 export const apart = (color: string | undefined, body: string): string | undefined => {
   if (!color || !color.startsWith('#') || distance(color, body) >= 90) return color
   return [...CONTRAST].sort((a, b) => distance(b, body) - distance(a, body))[0]
+}
+
+// Clawd's body color: the prompt's own pick, unless the item it holds or the hat it
+// wears is close to it; then the next color that stands apart from all of them, so
+// items keep their natural colors (a pink umbrella, a gold trophy).
+export const bodyFor = (seed: number, topic: Topic | null, outfit: Outfit): string => {
+  const avoid = new Set<string>()
+  const prop = topic?.prop ? PROPS[topic.prop] : undefined
+  for (let i = 0; prop && i < 40; i++) for (const c of prop.render(i).flat()) for (const v of [c.fg, c.bg]) if (v?.startsWith('#')) avoid.add(v)
+  for (const [, kind] of outfit.hat ?? []) if (kind.startsWith('#')) avoid.add(kind)
+  const order = COLORS.map((_, k) => COLORS[(seed + k) % COLORS.length] ?? '#D77757')
+  return order.find(c => [...avoid].every(a => distance(a, c) >= 90)) ?? order[0] ?? '#D77757'
 }
 
 export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: number, seed: number): Cell[][] => {
@@ -912,9 +924,9 @@ export const register: Register = on => {
     // Seeded by the text, not the message id: a fresh prompt's id changes once it is stored,
     // which would re-roll its color and outfit a moment after you send it.
     const seed = hash(e.props.text)
-    const body = COLORS[seed % COLORS.length] ?? '#D77757'
     const topic = topicOf(e.props.text)
     const outfit = OUTFITS.find(o => o.name === topic?.outfit) ?? OUTFITS[(seed >>> 12) % OUTFITS.length] ?? { name: 'plain' }
+    const body = bodyFor(seed, topic, outfit)
     const b = e.props.onScreen === null ? 0 : await read($, beat)
 
     const cols = Math.max(40, (e.viewport?.columns ?? 80) - 2)

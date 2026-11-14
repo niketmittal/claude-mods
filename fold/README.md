@@ -2,7 +2,7 @@
 
 Fold Claude's long answers so the conversation stays easy to scan.
 
-- Every answer of 10 lines or more gets a toggle at its end. `▾ fold` shrinks it to its first 3 lines and `▸ 27 more lines` opens it again (click it in fullscreen mode, where the terminal reports clicks).
+- Click a long answer's `⏺` bullet, or the `▾ fold` line at its end, to fold it to its first 3 lines. Click anywhere on a folded answer to open it again. (Clicks need the fullscreen view: `/tui fullscreen`.)
 - `/fold` folds every long answer at once; `/unfold` opens them all. Clicking one still opens or folds just that one.
 - Short answers are left exactly as Claude Code draws them.
 

@@ -38,15 +38,30 @@ export const register: Register = on => {
     const folded = isFolded(await read($, byId), everything, id)
     const toggle = () => update($, byId, ids => ({ ...ids, [id]: !isFolded(ids, everything, id) }))
     const { Box, Button, Markdown, Text } = $.ui.resolve(e)
-    const shown = folded ? lines.slice(0, KEEP).join('\n') : e.props.text
+    const bullet = e.props.isFirstOfReply ? '⏺' : ' '
+    if (folded)
+      // Folded: the whole preview is one button; a click anywhere on it opens the answer.
+      return (
+        <Box flexDirection="row">
+          <Box width={2} flexShrink={0}>
+            <Text>{bullet}</Text>
+          </Box>
+          <Button key="fold" plain onPress={toggle}>
+            {lines.slice(0, KEEP).join('\n')}
+            {'\n'}
+            <Text dimColor>▸ {lines.length - KEEP} more lines</Text>
+          </Button>
+        </Box>
+      )
+    // Open: the bullet and the line at the end fold it (the formatted body itself cannot take a click).
     return (
       <Box flexDirection="row">
         <Box width={2} flexShrink={0}>
-          <Text>{e.props.isFirstOfReply ? '⏺' : ' '}</Text>
+          {e.props.isFirstOfReply ? <Button key="bullet" plain label="⏺" onPress={toggle} /> : <Text> </Text>}
         </Box>
         <Box flexDirection="column" flexGrow={1}>
-          <Markdown text={shown} />
-          <Button key="fold" plain label={folded ? `▸ ${lines.length - KEEP} more lines` : '▾ fold'} onPress={toggle} />
+          <Markdown text={e.props.text} />
+          <Button key="fold" plain label="▾ fold" onPress={toggle} />
         </Box>
       </Box>
     )

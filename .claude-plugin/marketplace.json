@@ -6,8 +6,13 @@
   "plugins": [
     {
       "name": "eta",
-      "source": "./",
-      "description": "Live, self-calibrating ETA for the current turn, done pings, and background side: tasks."
+      "source": "./eta",
+      "description": "Live, self-calibrating ETA for the main thread and every subagent, done pings, and background side: tasks."
+    },
+    {
+      "name": "buddy",
+      "source": "./buddy",
+      "description": "A tiny dancing block buddy beside each prompt you type, random shape and color per prompt, so you spot your prompts fast."
     }
   ],
   "description": "Claude Code mods by Niket"

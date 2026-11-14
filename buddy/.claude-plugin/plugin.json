@@ -1,0 +1,10 @@
+{
+  "name": "buddy",
+  "version": "0.1.0",
+  "description": "A tiny dancing block buddy next to each of your prompts, in a random shape and color per prompt, so you spot them fast when scrolling.",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "Niket Mittal"
+  },
+  "repository": "https://github.com/niketmittal/claude-mods"
+}

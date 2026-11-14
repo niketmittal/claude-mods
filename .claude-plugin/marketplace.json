@@ -13,11 +13,6 @@
       "name": "buddy",
       "source": "./buddy",
       "description": "Clawd walks across every prompt you type, in its own color per prompt, so you spot your prompts fast."
-    },
-    {
-      "name": "fold",
-      "source": "./fold",
-      "description": "Fold long answers: a toggle at the end of each long reply, and /fold and /unfold for all of them."
     }
   ],
   "description": "Claude Code mods by Niket"

@@ -34,6 +34,16 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 | ![](media/lock.gif)<br>`login`, `password`, `security`: a key unlocks a padlock | ![](media/box.gif)<br>`install`, `extension`, `package`: a parcel opens |
 | ![](media/clapper.gif)<br>`video`, `animation`, `gif`: a clapperboard snaps | ![](media/handover.gif)<br>several topics in one prompt: one per lap, swapping with a sparkle |
 
+### Moods and remarks
+
+Clawd acts out how a prompt feels. And when it strongly wants to say something about a prompt (a cheer, a worry, a joke), a short remark appears in a speech bubble beside it, whatever it is doing; most prompts get no remark. (One tiny Haiku call per prompt decides.)
+
+| | |
+| --- | --- |
+| ![](media/mood-sad.gif)<br>`sigh`, `ugh`, `tired`, `:(`: slumps under a rain cloud | ![](media/mood-angry.gif)<br>`wtf`, `hate`, `annoying`: shakes, steam puffing |
+| ![](media/mood-happy.gif)<br>`yay`, `glad`, `excited`, `:)`: bounces with sparkles | ![](media/mood-surprised.gif)<br>`wow`, `omg`, `!!`: jumps, `!!` |
+| ![](media/mood-confused.gif)<br>`huh`, `hmm`, `idk`, `??`: tilts, `?` popping up | ![](media/mood-laughing.gif)<br>`lol`, `haha`, `lmao`: shakes laughing, "ha" |
+
 ### Heroes
 
 Original hero looks (not any real character), each with its own move. Capes trail beside Clawd and badges sit above it, never on its face.

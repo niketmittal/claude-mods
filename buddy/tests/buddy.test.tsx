@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { COLORS, EARRINGS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, earringFor, setGreetName, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
+import { COLORS, EARRINGS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, bubble, earringFor, setGreetName, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -321,4 +321,24 @@ test('saying hi gets a hi back by name', () => {
   expect(text).toContain('Niket!')
   setGreetName(undefined)
   expect((PROPS.hello?.render(0) ?? []).map(r => r.map(c => c.ch).join('')).join('|')).toContain('hi!')
+})
+
+test('moods: Clawd acts out how the prompt feels', () => {
+  expect(topicOf('sigh')).toEqual({ mood: 'sad' })
+  expect(topicOf('wtf is this')).toEqual({ mood: 'angry' })
+  expect(topicOf('lol')).toEqual({ mood: 'laughing' })
+  expect(topicOf('wow')).toEqual({ mood: 'surprised' })
+  expect(topicOf('hmm weird')).toEqual({ mood: 'confused' })
+  expect(topicOf('yay')).toEqual({ mood: 'happy' })
+  const sad = scene(40, 3, 1, { mood: 'sad' })
+  expect(sad.frame.offset).toBe(1) // slumped
+  expect(sad.extras.some(e => e.kind === 'mark' && e.y === 0)).toBe(true) // its rain cloud
+  expect(scene(40, 1, 1, { mood: 'surprised' }).extras.some(e => e.kind === 'mark' && e.ch === '!')).toBe(true)
+})
+
+test('when Clawd has something to say, it shows in a bubble beside its head, not on it', () => {
+  const marks = bubble('ooh fun!', 10, 60)
+  const text = marks.filter(m => m.kind === 'mark' && m.y === 0).map(m => (m.kind === 'mark' ? m.ch : '')).join('')
+  expect(text).toBe(' ooh fun! ')
+  for (const m of marks) if (m.kind === 'mark' && m.y === 0) expect(m.x).toBeGreaterThanOrEqual(10 + 9)
 })

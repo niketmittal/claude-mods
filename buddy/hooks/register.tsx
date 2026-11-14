@@ -1,7 +1,9 @@
 import { atom, read, update } from 'claude-code'
-import type { Register } from 'claude-code'
+import type { EngineInterface, Register } from 'claude-code'
 
 const beat = atom({ plugin: 'buddy', key: 'beat' } as const, 0)
+// What Clawd wanted to say about a prompt, if anything, keyed by the prompt's text hash.
+const remarks = atom({ plugin: 'buddy', key: 'remarks' } as const, {})
 
 const BEAT_MS = 180
 const W = 9
@@ -820,9 +822,17 @@ const SCENE_NAMES = ['swim', 'space', 'garden', 'party', 'night', 'rain', 'snow'
 
 export type Crew = 'family' | 'catch' | 'class'
 export type Hero = 'super' | 'night' | 'speed' | 'swing' | 'ranger' | 'robo'
-export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew; hero?: Hero; show?: boolean }
+export type Mood = 'sad' | 'angry' | 'happy' | 'surprised' | 'confused' | 'laughing'
+export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew; hero?: Hero; show?: boolean; mood?: Mood }
 
 const TOPICS: [RegExp, Topic][] = [
+  // How the prompt feels: Clawd acts the mood out.
+  [/\b(lol|lmao|rofl|haha\w*|hehe\w*)\b/, { mood: 'laughing' }],
+  [/\b(wtf|angry|mad|annoy\w*|hate|stupid|damn|dammit|furious|ffs)\b|>:\(/, { mood: 'angry' }],
+  [/\b(sigh|sad|ugh|tired|exhausted|frustrat\w*|cry|crying|upset|disappointed|nope|nah|meh|sucks)\b|:\(/, { mood: 'sad' }],
+  [/\b(wow|whoa|woah|omg|no way)\b|!{2,}/, { mood: 'surprised' }],
+  [/\b(huh|hmm+|confused|idk|unsure|weird|strange)\b|\?{2,}/, { mood: 'confused' }],
+  [/\b(yay|happy|glad|excited|woo+hoo|woo+)\b|:\)|:d\b/, { mood: 'happy' }],
   // An item named outright shows that item.
   [/^\s*(hi|hii+|hello|hey|heya|yo|hola|namaste|gm|good (morning|afternoon|evening))\b/, { prop: 'hello' }],
   [/\b(hammer|nails?|hammering)\b/, { prop: 'hammer' }],
@@ -932,7 +942,7 @@ export type Extra =
   | { kind: 'friend'; x: number; pose: Pose }
   | { kind: 'cells'; x: number; rows: Cell[][] }
   | { kind: 'ball'; x: number; y: number }
-  | { kind: 'mark'; x: number; y: number; ch: string; fg: string; front?: boolean } // one glyph: a cape, a rope, a flame
+  | { kind: 'mark'; x: number; y: number; ch: string; fg: string; front?: boolean; bg?: string } // one glyph: a cape, a rope, a flame, a word
 
 export type Scene = { x: number; frame: Frame; prop: { rows: Cell[][]; dx: number } | null; scene: string | null; extras: Extra[] }
 
@@ -970,7 +980,7 @@ const transition = (rows: Cell[][], i: number): Cell[][] => {
 // ---- Heroes: original looks, each with its own move for the activity. ----
 const CAPE = '#D7263D'
 const NIGHT_CAPE = '#3A3F6B'
-const mark = (x: number, y: number, ch: string, fg: string, front = false): Extra => ({ kind: 'mark', x, y, ch, fg, front })
+const mark = (x: number, y: number, ch: string, fg: string, front = false, bg?: string): Extra => ({ kind: 'mark', x, y, ch, fg, front, ...(bg ? { bg } : {}) })
 const MIRROR: Record<string, string> = { '▐': '▌', '▌': '▐', '▟': '▙', '▙': '▟', '▛': '▜', '▜': '▛', '▗': '▖', '▖': '▗', '▝': '▘', '▘': '▝' }
 const mirror = (ch: string) => MIRROR[ch] ?? ch
 
@@ -1059,6 +1069,46 @@ const fashion = (b: number, mid: number, bg: string | null): Scene => {
   return { x: mid, frame, prop: null, scene: bg, extras: sparkle }
 }
 
+// ---- Moods: Clawd acts out how the prompt feels; the marks sit above its head. ----
+export const moodAct = (mood: Mood, i: number, mid: number, legs: number, bg: string | null): Scene => {
+  const at = (x: number) => Math.max(0, Math.min(legs, x))
+  const still = (rows: Rows, x: number, extras: Extra[], offset = 0): Scene => ({ x: at(x), frame: { rows, offset }, prop: null, scene: bg, extras })
+  if (mood === 'sad') {
+    // Slumped under its own little rain cloud, drops falling past it.
+    const cloud = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => mark(mid + k, 0, k === -1 ? '▗' : k === 9 ? '▖' : '▄', '#8A93A8', true))
+    const drops = [-1, 9].map((k, n) => mark(mid + k, 1 + ((i + n) % 3), '╷', '#4FA3E0', true)) // beside Clawd, never on it
+    return still(front(so('closed')), mid, [...cloud, ...(i % 3 === 0 ? [] : drops)], 1)
+  }
+  if (mood === 'angry') {
+    // Shaking and squinting, red steam puffing from both sides of its head.
+    const steam = i % 2 ? [mark(mid, 0, '~', '#E02E2E', true), mark(mid + 8, 0, '~', '#E02E2E', true)] : [mark(mid + 1, 0, '≈', '#E02E2E', true), mark(mid + 7, 0, '≈', '#E02E2E', true)]
+    return still(front(so('closed', i % 4 < 2 ? 'up' : 'down')), mid + (i % 2), steam)
+  }
+  if (mood === 'happy') {
+    // Bouncing with arms up, sparkles around.
+    const up = i % 2 === 0
+    const spark = [mark(mid - 1, up ? 1 : 2, i % 4 < 2 ? '✦' : '✧', '#F2D04B', true), mark(mid + 9, up ? 2 : 1, i % 4 < 2 ? '✧' : '✦', '#F2D04B', true)]
+    return still(front(so(i % 6 === 5 ? 'wink' : 'open', up ? 'up' : 'down')), mid, spark, up ? -1 : 0)
+  }
+  if (mood === 'surprised') {
+    // A jump of surprise and a big "!" over its head.
+    const k = i % 8
+    const jump = k === 1 || k === 2
+    return still(front(so('open', k >= 1 && k <= 4 ? 'up' : 'down')), mid, k >= 1 && k <= 5 ? [mark(mid + 9, 0, '!', '#F2D04B', true), mark(mid + 10, 0, '!', '#F2D04B', true)] : [], jump ? -1 : 0)
+  }
+  if (mood === 'confused') {
+    // Looks one way then the other, a "?" popping up on that side.
+    const left = i % 8 < 4
+    return still(front(so(left ? 'left' : 'right')), mid + (left ? 0 : 1), [mark(left ? mid + 1 : mid + 8, 0, '?', '#F2D04B', true)])
+  }
+  // Laughing: shaking with it, "ha" floating up.
+  const ha = [0, 1].map(n => {
+    const t = (i + n * 3) % 6
+    return t < 3 ? [mark(mid + 9 + n * 2, 2 - t, 'h', '#F2D04B', true), mark(mid + 10 + n * 2, 2 - t, 'a', '#F2D04B', true)] : []
+  }).flat()
+  return still(front(so('closed', i % 2 ? 'up' : 'one-up')), mid + (i % 2), ha, i % 4 === 0 ? -1 : 0)
+}
+
 export const scene = (range: number, b: number, seed: number, topics: Topic | Topic[] | null): Scene => {
   const legs = Math.max(0, range)
   const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
@@ -1093,6 +1143,7 @@ export const scene = (range: number, b: number, seed: number, topics: Topic | To
   const plain = (k: Key): Frame => draw(k)
   const act = (i: number, x: number): Scene => {
     if (topic?.hero) return heroAct(topic.hero, i, x, legs, bg)
+    if (topic?.mood) return moodAct(topic.mood, i, x, legs, bg)
     const base = { x, scene: bg, extras: family(x, 1, false) }
     if (swim) return { ...base, frame: { rows: front(so(i % 6 < 3 ? 'open' : 'right', i % 4 < 2 ? 'up' : 'one-up')), offset: 0 }, prop: null }
     if (room && crew === 'catch') {
@@ -1364,7 +1415,7 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
     }),
   )
   for (const e of s.extras) if (e.kind === 'ball') put(e.x, Math.max(0, h - 2 - e.y), { ch: '●', fg: '#E0607E' })
-  for (const e of s.extras) if (e.kind === 'mark' && e.front) put(e.x, e.y, { ch: e.ch, fg: e.fg })
+  for (const e of s.extras) if (e.kind === 'mark' && e.front) put(e.x, e.y, { ch: e.ch, fg: e.fg, ...(e.bg ? { bg: e.bg } : {}) })
 
   if (swim)
     for (let x = 0; x < width; x++) put(x, h - 1, { ch: (x + (b >> 1)) % 3 === 0 ? '≈' : '~', fg: '#4FA3E0' })
@@ -1396,6 +1447,27 @@ export const startBeat = (id: string, text: string, b: number): number => {
   return start
 }
 
+const REMARK_SYSTEM = `You are Clawd, a tiny pixel mascot who lives on the user's prompt line in Claude Code and watches what they ask.
+Most of the time you stay quiet. Only if you STRONGLY feel like saying something to the user about this prompt (excitement, worry, a joke, sympathy, cheering them on) reply with that remark: at most 14 characters, lowercase, casual, no quotes, an emoji-free kaomoji or "!" is fine.
+Otherwise reply exactly: NONE`
+
+// Asks Clawd once per prompt whether it wants to say anything; most prompts get nothing.
+async function askRemark($: EngineInterface, text: string) {
+  const key = String(hash(text))
+  if ((await read($, remarks))[key] !== undefined) return
+  await update($, remarks, m => ({ ...m, [key]: '' }))
+  const answer = await $.model.complete({ model: 'haiku', system: REMARK_SYSTEM, prompt: text.slice(0, 1500), maxTokens: 16 })
+  const line = answer.isAnswered ? (answer.text.split('\n')[0] ?? '').trim().replace(/^["'“]|["'”]$/g, '') : ''
+  if (line && !/^none\b/i.test(line)) await update($, remarks, m => ({ ...m, [key]: line.slice(0, 14) }))
+}
+
+// A speech bubble beside Clawd's head with its remark, shown for the first part of each lap.
+export const bubble = (remark: string, x: number, width: number): Extra[] => {
+  const text = ` ${remark} `
+  const start = Math.min(x + 10, Math.max(0, width - text.length))
+  return [...text].map((ch, k) => mark(start + k, 0, ch, '#2A2E37', true, '#F0F0F0') as Extra).concat([mark(start - 1, 1, '◢', '#F0F0F0', true)])
+}
+
 export const COLORS = ['#D77757', '#E8A33D', '#6CC24A', '#4FA3E0', '#B57EDC', '#E0607E', '#3CC8B4', '#F2D04B']
 
 export const register: Register = on => {
@@ -1405,6 +1477,14 @@ export const register: Register = on => {
     $.clock.every(BEAT_MS, () => update($, beat, b => (b + 1) % 1_000_000))
     return next(e)
   })
+
+  // Each new prompt: Clawd decides whether it has anything to say about it.
+  on('turn.start', async ($, e, next) => {
+    const result = await next(e)
+    const text = e.text.trim()
+    if (text) $.clock.after(0, () => void askRemark($, text))
+    return result
+  }).catch(($, e, next) => next(e))
 
   on('ui.render', { component: 'UserMessage' }, async ($, e, next) => {
     if (e.surface !== 'terminal' || e.props.origin.kind !== 'composer') return next(e)
@@ -1425,7 +1505,10 @@ export const register: Register = on => {
     const s = scene(range, b - start, seed >>> 8, topics)
     const dressed = topics.some(t => t.show) && s.extras.every(e => e.kind === 'mark') && s.prop === null ? showOutfit(b - start) : outfit
     const earring = earringFor(seed)
-    const grid = paint(s, range + W, earring ? { ...dressed, earring } : dressed, body, b, seed)
+    // Clawd's remark, if it had one, in a bubble for the first stretch of every lap.
+    const remark = (await read($, remarks))[String(hash(e.props.text))]
+    const talking = remark && (b - start) % 200 < 60 ? { ...s, extras: [...s.extras, ...bubble(remark, s.x, range + W)] } : s
+    const grid = paint(talking, range + W, earring ? { ...dressed, earring } : dressed, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)
     return (

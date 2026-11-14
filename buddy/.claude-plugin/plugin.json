@@ -1,6 +1,6 @@
 {
   "name": "buddy",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Clawd walks across every prompt you type, in its own color per prompt, so you spot your prompts fast when scrolling.",
   "types": "./types/index.d.ts",
   "author": {

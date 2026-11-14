@@ -828,8 +828,8 @@ export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Cre
 const TOPICS: [RegExp, Topic][] = [
   // How the prompt feels: Clawd acts the mood out.
   [/\b(lol|lmao|rofl|haha\w*|hehe\w*)\b/, { mood: 'laughing' }],
-  [/\b(wtf|angry|mad|annoy\w*|hate|stupid|damn|dammit|furious|ffs)\b|>:\(/, { mood: 'angry' }],
-  [/\b(sigh|sad|ugh|tired|exhausted|frustrat\w*|cry|crying|upset|disappointed|nope|nah|meh|sucks)\b|:\(/, { mood: 'sad' }],
+  [/\b(wtf|angry|mad|annoy\w*|hate|stupid|damn|dammit|furious|ffs|bru+h+|smh|seriously|come on)\b|>:\(/, { mood: 'angry' }],
+  [/\b(sigh|sad|ugh|tired|exhausted|frustrat\w*|cry|crying|upset|disappointed|nope|nah|meh|sucks|bad|terrible|worst|awful|useless|horrible)\b|:\(/, { mood: 'sad' }],
   [/\b(wow|whoa|woah|omg|no way)\b|!{2,}/, { mood: 'surprised' }],
   [/\b(huh|hmm+|confused|idk|unsure|weird|strange)\b|\?{2,}/, { mood: 'confused' }],
   [/\b(yay|happy|glad|excited|woo+hoo|woo+)\b|:\)|:d\b/, { mood: 'happy' }],

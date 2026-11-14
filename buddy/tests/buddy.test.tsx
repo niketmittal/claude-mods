@@ -332,6 +332,9 @@ test('moods: Clawd acts out how the prompt feels', () => {
   expect(topicOf('yay')).toEqual({ mood: 'happy' })
   expect(topicOf('u r so bad')).toEqual({ mood: 'sad' })
   expect(topicOf('bruhhhhhh')).toEqual({ mood: 'angry' })
+  expect(topicOf('ughhhhhh')).toEqual({ mood: 'sad' })
+  expect(topicOf('yaaaay')).toEqual({ mood: 'happy' })
+  expect(topicOf('lolllll')).toEqual({ mood: 'laughing' })
   const sad = scene(40, 3, 1, { mood: 'sad' })
   expect(sad.frame.offset).toBe(1) // slumped
   expect(sad.extras.some(e => e.kind === 'mark' && e.y === 0)).toBe(true) // its rain cloud

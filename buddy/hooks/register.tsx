@@ -911,7 +911,8 @@ const TOPICS: [RegExp, Topic][] = [
 
 // Every topic a prompt matches, in order; a prompt cycles through them, one per lap.
 export const topicsOf = (text: string): Topic[] => {
-  const t = text.toLowerCase()
+  // Stretched words count too: "ughhhh", "yaaay", "lolll" read as "ugh", "yay", "lol".
+  const t = text.toLowerCase().replace(/([a-z])\1{2,}/g, '$1')
   const seen = new Set<string>()
   return TOPICS.filter(([re]) => re.test(t))
     .map(([, topic]) => topic)
@@ -922,7 +923,7 @@ export const topicsOf = (text: string): Topic[] => {
 }
 
 export const topicOf = (text: string): Topic | null => {
-  const t = text.toLowerCase()
+  const t = text.toLowerCase().replace(/([a-z])\1{2,}/g, '$1')
   return TOPICS.find(([re]) => re.test(t))?.[1] ?? null
 }
 

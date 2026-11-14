@@ -51,9 +51,38 @@ test('hats sit on top, swimming puts waves over the bottom row', () => {
   const g = show(paint(s, 39, girl, '#D77757', 3, 1))
   expect(g).toHaveLength(4)
   expect(g[3]).toMatch(/^[~≈]+$/)
-  const dry = show(paint(scene(30, 3, 1, null), 39, girl, '#D77757', 3, 1))
+  const dry = show(paint(scene(30, 3, 1, { prop: 'think' }), 39, girl, '#D77757', 3, 1))
   expect(dry.some(r => r.includes('▚▞'))).toBe(true)
   for (const r of dry) expect([...r].length).toBe(39)
+})
+
+test('a prompt keeps its look when its message id changes', async ($, on) => {
+  mock.clock(on, { now: 0 })
+  on('ui.render', { component: 'UserMessage' }, ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine row</Text>
+  })
+  const looks = []
+  for (const id of ['pending-1', 'stored-abc']) {
+    const ui = await $.ui.mount({
+      plugin: 'buddy',
+      surface: 'terminal',
+      component: 'UserMessage',
+      requestId: id,
+      props: { text: 'refactor the parser', origin: { kind: 'composer' }, isExpanded: true },
+    } as never)
+    looks.push(JSON.stringify(await ui.drawn()))
+    await ui.unmount()
+  }
+  expect(looks[0]).toBe(looks[1])
+})
+
+test('Clawd never gets a dark background behind solid blocks', () => {
+  for (const name of Object.keys(TRICKS))
+    for (let b = 0; b < 40; b++) {
+      const g = paint(scene(20, b, b, null), 29, OUTFITS[b % OUTFITS.length] ?? { name: 'plain' }, '#D77757', b, 1)
+      for (const row of g) for (const c of row) if (c.bg === '#000000') expect(c.ch).not.toBe('█')
+    }
 })
 
 test('typed prompt row is highlighted and shows Clawd', async ($, on) => {

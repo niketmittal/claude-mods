@@ -5,7 +5,7 @@ Clawd, the block mascot from Claude Code's welcome screen, walks back and forth 
 ## What Clawd does
 
 - Walks back and forth along each prompt row, turning around at the edges. Your prompt sits on a lightly highlighted bar, in the same color as its Clawd, with wrapped lines lined up under the first.
-- Wears an outfit picked per prompt: top hat, party hat, crown, girl Clawd with hair and a bow (or blonde with a flower), beanie, cowboy hat, halo, flower crown, sunglasses, overalls or a striped shirt.
+- Wears headwear picked per prompt (28 looks): top hat, party hat, crown, girl Clawd with hair and a bow, blonde with a flower, pigtails, princess tiara, beanie, cowboy, halo, flower crown, chef, wizard, witch, santa, graduation cap, headphones, viking, ninja, pirate, bunny ears, cat ears, devil horns, a spinning propeller cap, baseball cap, sombrero, alien antennae, or nothing.
 - Halfway along, does something that fits your prompt:
 
   | Prompt mentions | Clawd |
@@ -13,6 +13,15 @@ Clawd, the block mascot from Claude Code's welcome screen, walks back and forth 
   | git, commit, push, branch, PR | types on a laptop while commits appear on screen |
   | deploy, ship, release, space | launches a rocket among the stars |
   | swim, beach, water, ocean | swims through waves |
+  | fish, dive, underwater | among bubbles, fish and seaweed |
+  | code, hack, terminal | at a laptop in falling matrix code |
+  | server, docker, k8s, cloud | at a laptop in front of a city skyline |
+  | rain, storm, weather | in the rain |
+  | snow, winter, cold | in falling snow |
+  | sun, summer, vacation | under the sun, in a sombrero |
+  | done, shipped, milestone | under fireworks |
+  | love, heart, <3 | among rising hearts |
+  | christmas, pirate, wizard, chef, ninja, learn, birthday | dressed for it (santa, pirate, wizard, chef, ninja, graduate, party hat) |
   | fix, build, add, refactor | hammers a nail into a board |
   | find, search, debug, test | scans with a magnifier |
   | flowers, garden, pretty, design, css | grows a flower in a garden |
@@ -21,7 +30,8 @@ Clawd, the block mascot from Claude Code's welcome screen, walks back and forth 
   | later, break, sleep | naps (zZ) under the moon |
   | a question | ponders with a thought bubble |
 
-- Prompts with no topic get a new activity and scene (swimming, space, garden, party, night) every lap.
+- Prompts with no topic get a new activity and scene every lap.
+- A prompt's color and headwear come from its text, so the same prompt always looks the same.
 - On the way back, does one of Claude Code's own Clawd tricks, a different one each lap: jump, skip, spin, peekaboo, drop, waddle, wink, boop, tap, sneeze, turn, coin-hop.
 
 ## Install

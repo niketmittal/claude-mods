@@ -13,8 +13,8 @@ type Cell = { ch: string; fg?: string; bg?: string }
 
 // ---------------------------------------------------------------------------
 // Clawd's sprite, as Claude Code draws it.
-// A span is [text, kind]: 'n' body, 'e' eye (dark background), 'l' eyelid (dark on
-// body), 's' torso (where clothes go), or a '#rrggbb' color for an accessory.
+// A span is [text, kind]: 'n' body, 'e' eye (dark showing through the glyph's gaps),
+// 'l' eyelid (dark on body), or a '#rrggbb' color for an accessory.
 type Span = [string, string]
 type Rows = Span[][]
 
@@ -35,7 +35,6 @@ const EYES: Record<Eyes, Span[]> = {
   closed: [['▂', 'l'], ['███', 'e'], ['▂', 'l'], ['█', 'e']],
   wink: [['▛███', 'e'], ['▂', 'l'], ['█', 'e']],
 }
-const SHADES: Span[] = [['▆▆', 'l'], ['█', 'e'], ['▆▆', 'l'], ['█', 'e']]
 const FEET: Record<Feet, string> = { both: ' ▝▝   ▝▝ ', left: ' ▝▝      ', right: '      ▝▝ ' }
 
 // Turn frames: [glyphs, eyeFrom, eyeTo] per row.
@@ -62,10 +61,9 @@ const pad = (spans: Span[]): Span[] => {
   return len < W ? [...spans, [' '.repeat(W - len), 'n']] : spans
 }
 
-export const front = ({ eyes, arms, feet }: Pose, shades = false): Rows => {
+export const front = ({ eyes, arms, feet }: Pose): Rows => {
   const a = ARMS[arms]
-  const e = shades && (eyes === 'open' || eyes === 'left' || eyes === 'right') ? SHADES : EYES[eyes]
-  return [pad([[a.r1L, 'n'], ...e, [a.r1R, 'n']]), [[a.r2L, 'n'], ['█████', 's'], [a.r2R, 'n']], [[FEET[feet], 'n']]]
+  return [pad([[a.r1L, 'n'], ...EYES[eyes], [a.r1R, 'n']]), [[a.r2L, 'n'], ['█████', 'n'], [a.r2R, 'n']], [[FEET[feet], 'n']]]
 }
 
 export const facing = (name: string, stride: number | null = null): Rows => {
@@ -75,7 +73,7 @@ export const facing = (name: string, stride: number | null = null): Rows => {
     const cs = [...g]
     return [[cs.slice(0, from).join(''), 'n'], [cs.slice(from, to).join(''), mid], [cs.slice(to).join(''), 'n']]
   }
-  return [row(0, 'e'), row(1, 's'), stride === null ? row(2, 'n') : [[STRIDE[stride % 2] ?? '', 'n']]]
+  return [row(0, 'e'), row(1, 'n'), stride === null ? row(2, 'n') : [[STRIDE[stride % 2] ?? '', 'n']]]
 }
 
 // Shift rows down (offset > 0, sinking) or up (offset < 0) inside a window of h rows.
@@ -138,34 +136,51 @@ const POOF = { dot: '  ·   ·  ', wave: ' ˚     ˚ ' }
 // A frame of Clawd before it is dressed and placed: rows, how far it sinks, any dust.
 export type Frame = { rows: Rows; offset: number; poof?: 'dot' | 'wave' }
 
-export const draw = (k: Key, shades = false): Frame => {
+export const draw = (k: Key): Frame => {
   const p = k.pose
-  const rows = typeof p === 'string' ? front(NAMED[p] ?? so('open'), shades) : 'facing' in p ? facing(p.facing) : front(p, shades)
+  const rows = typeof p === 'string' ? front(NAMED[p] ?? so('open')) : 'facing' in p ? facing(p.facing) : front(p)
   return { rows, offset: k.offset, poof: k.poof }
 }
 
 // ---------------------------------------------------------------------------
-// Outfits: one per prompt, so each prompt's Clawd is recognisable. A hat row
-// sits above the head; clothes recolor the torso; shades replace the eyes.
-type Outfit = { name: string; hat?: Span[]; shirt?: { ch: string; color: string }; shades?: boolean }
+// Outfits: headwear picked per prompt, so each prompt's Clawd is recognisable.
+// The hat row sits above the head; hatAlt, if any, alternates with it.
+type Outfit = { name: string; hat?: Span[]; hatAlt?: Span[] }
 
 const HAIR = '#8B5A2B'
 const BLONDE = '#F2D04B'
 const PINK = '#FF7EB6'
+const PURPLE = '#6A4FC8'
+const RED = '#D7263D'
 export const OUTFITS: Outfit[] = [
   { name: 'plain' },
-  { name: 'top hat', hat: [[' ▁▟███▙▁ ', '#9A9AA0']], shirt: { ch: '▄', color: '#3A3A44' } },
+  { name: 'top hat', hat: [[' ▁▟███▙▁ ', '#9A9AA0']] },
   { name: 'party hat', hat: [['    ▟▙   ', '#E0607E']] },
   { name: 'crown', hat: [['  ▙▟▙▟▙  ', '#F2C744']] },
-  { name: 'girl', hat: [['  ▄▄▄▄▄', HAIR], ['▚▞', PINK]], shirt: { ch: '▄', color: PINK } },
-  { name: 'blonde girl', hat: [['  ▄▄▄▄▄', BLONDE], ['✿ ', PINK]], shirt: { ch: '▄', color: '#B57EDC' } },
+  { name: 'girl', hat: [['  ▄▄▄▄▄', HAIR], ['▚▞', PINK]] },
+  { name: 'blonde girl', hat: [['  ▄▄▄▄▄', BLONDE], ['✿ ', PINK]] },
+  { name: 'pigtails', hat: [['▗▖▄▄▄▄▄▗▖', HAIR]] },
+  { name: 'princess', hat: [['  ▄▄', HAIR], ['▴▲▴', '#F2C744'], ['▄▄', HAIR]] },
   { name: 'beanie', hat: [['  ▗▄█▄▖  ', '#4FA3E0']] },
   { name: 'cowboy', hat: [['▁▁▟███▙▁▁', '#A0522D']] },
   { name: 'halo', hat: [['  ╺━━━╸  ', '#F2D04B']] },
   { name: 'flower crown', hat: [['  ', 'n'], ['✿', PINK], ['❀', BLONDE], ['✿', '#B57EDC'], ['❀', PINK], ['✿', BLONDE], ['  ', 'n']] },
-  { name: 'cool', shades: true, shirt: { ch: '▀', color: '#2F2F36' } },
-  { name: 'overalls', shirt: { ch: '▄', color: '#3B5BA5' } },
-  { name: 'striped', shirt: { ch: '▀', color: '#FFFFFF' } },
+  { name: 'chef', hat: [['  ▟███▙  ', '#F5F5F5']] },
+  { name: 'wizard', hat: [['   ▗▟▙▖', PURPLE], ['✦', BLONDE], [' ', 'n']] },
+  { name: 'witch', hat: [['  ▁▁▟▙▁▁ ', PURPLE]] },
+  { name: 'santa', hat: [['  ▗▄▄▄▄', RED], ['●', '#FFFFFF'], [' ', 'n']] },
+  { name: 'graduate', hat: [['  ▄▄█▄▄', '#3A3A44'], ['╻', BLONDE], [' ', 'n']] },
+  { name: 'headphones', hat: [['  ╭───╮  ', '#9A9AA0']] },
+  { name: 'viking', hat: [[' ▚', '#F2EBD9'], ['▄▄▄▄▄', '#9A9AA0'], ['▞ ', '#F2EBD9']] },
+  { name: 'ninja', hat: [['  ▄▄▄▄▄', RED], ['╲╲', RED]] },
+  { name: 'pirate', hat: [['  ▄▄▄▄▄', RED], ['▚ ', RED]] },
+  { name: 'bunny ears', hat: [['  ▐▌ ▐▌  ', '#F5F5F5']] },
+  { name: 'cat ears', hat: [['  ▲   ▲  ', 'n']] },
+  { name: 'devil horns', hat: [['  ▚   ▞  ', RED]] },
+  { name: 'propeller', hat: [['   ', 'n'], ['═╪═', BLONDE], ['   ', 'n']], hatAlt: [['   ', 'n'], ['─┼─', BLONDE], ['   ', 'n']] },
+  { name: 'cap', hat: [['  ▄███▄▄▄', '#4FA3E0']] },
+  { name: 'sombrero', hat: [['▁▁▄███▄▁▁', '#E8A33D']] },
+  { name: 'alien', hat: [['   ╿ ╿   ', '#6CC24A']] },
 ]
 
 // ---------------------------------------------------------------------------
@@ -251,23 +266,40 @@ const PROP_NAMES = ['computer', 'hammer', 'magnifier', 'rocket', 'heart', 'music
 
 // ---------------------------------------------------------------------------
 // Scenes paint the whole row behind (or, for water, in front of) Clawd.
-const SCENE_NAMES = ['swim', 'space', 'garden', 'party', 'night']
+const SCENE_NAMES = ['swim', 'space', 'garden', 'party', 'night', 'rain', 'snow', 'sunny', 'city', 'underwater', 'fireworks', 'matrix', 'love']
 
-const TOPICS: [RegExp, { prop?: string; scene?: string }][] = [
+export type Topic = { prop?: string; scene?: string; outfit?: string }
+
+const TOPICS: [RegExp, Topic][] = [
+  [/\b(christmas|xmas|santa|holidays?)\b/, { scene: 'snow', outfit: 'santa' }],
+  [/\b(pirate|treasure|ahoy)\b/, { scene: 'swim', outfit: 'pirate' }],
+  [/\b(wizard|magic|spell)\b/, { scene: 'space', outfit: 'wizard' }],
+  [/\b(chef|cook|cooking|recipe|food|bake)\b/, { prop: 'hammer', outfit: 'chef' }],
+  [/\b(ninja|stealth|secret|sneaky)\b/, { scene: 'night', outfit: 'ninja' }],
+  [/\b(learn|study|course|school|tutorial|teach|explain)\b/, { prop: 'think', outfit: 'graduate' }],
+  [/\b(birthday|anniversary)\b/, { prop: 'heart', scene: 'fireworks', outfit: 'party hat' }],
   [/\b(git|commit|push|pull|merge|rebase|branch|pr|diff|stash|checkout|cherry-pick|github|gitlab)\b/, { prop: 'computer' }],
+  [/\b(code|coding|hack|hacker|matrix|algorithm|binary|terminal)\b/, { prop: 'computer', scene: 'matrix' }],
   [/\b(deploy|ship|release|launch|publish|prod|production|rollout)\b/, { prop: 'rocket', scene: 'space' }],
-  [/\b(space|star|stars|moon|galaxy|planet|orbit|astronaut|cosmic)\b/, { prop: 'rocket', scene: 'space' }],
-  [/\b(swim|swimming|pool|beach|water|ocean|sea|surf|waves?|float|stream|dive)\b/, { scene: 'swim' }],
+  [/\b(space|stars?|moon|galaxy|planet|orbit|astronaut|cosmic|alien)\b/, { prop: 'rocket', scene: 'space', outfit: 'alien' }],
+  [/\b(fish|underwater|dive|diving|submarine|reef|aquarium)\b/, { scene: 'underwater' }],
+  [/\b(swim|swimming|pool|beach|water|ocean|sea|surf|waves?|float|stream)\b/, { scene: 'swim' }],
+  [/\b(rain|rainy|storm|weather|umbrella)\b/, { scene: 'rain' }],
+  [/\b(snow|winter|cold|ice|freeze|frozen)\b/, { scene: 'snow' }],
+  [/\b(sun|sunny|summer|vacation|weekend|trip)\b/, { scene: 'sunny', outfit: 'sombrero' }],
+  [/\b(server|servers|infra|infrastructure|kubernetes|k8s|docker|cluster|city|cloud)\b/, { prop: 'computer', scene: 'city' }],
+  [/\b(fireworks|new year|milestone|shipped|done|finished|celebrate)\b/, { prop: 'music', scene: 'fireworks' }],
+  [/\b(love|heart|crush)\b|<3/, { prop: 'heart', scene: 'love' }],
   [/\b(flowers?|garden|plants?|grow|bloom|seed|tree|spring|pretty|cute|beautiful|style|styling|design|css)\b/, { prop: 'flower', scene: 'garden' }],
-  [/\b(thanks|thank you|thx|nice|cool|great|love|awesome|perfect|congrats|yay)\b/, { prop: 'heart', scene: 'party' }],
-  [/\b(dance|play|music|fun|party|game|song|celebrate)\b/, { prop: 'music', scene: 'party' }],
+  [/\b(thanks|thank you|thx|nice|cool|great|awesome|perfect|congrats|yay)\b/, { prop: 'heart', scene: 'party' }],
+  [/\b(dance|play|music|fun|party|game|song)\b/, { prop: 'music', scene: 'party' }],
   [/\b(later|break|sleep|tired|wait|night|pause|tomorrow)\b/, { prop: 'sleep', scene: 'night' }],
   [/\b(search|find|look|grep|research|investigate|debug|check|test|inspect|trace|why)\b/, { prop: 'magnifier' }],
   [/\b(fix|build|implement|refactor|edit|change|add|make|create|write|tool|update|install|setup|set up)\b/, { prop: 'hammer' }],
   [/\?\s*$|^\s*(how|what|why|when|where|which|can|should|is|does|do)\b/, { prop: 'think' }],
 ]
 
-export const topicOf = (text: string): { prop?: string; scene?: string } | null => {
+export const topicOf = (text: string): Topic | null => {
   const t = text.toLowerCase()
   return TOPICS.find(([re]) => re.test(t))?.[1] ?? null
 }
@@ -284,22 +316,22 @@ const turnKey = (name: string): Key => (name === 'front' ? NO : name === 'up' ? 
 
 export type Scene = { x: number; frame: Frame; prop: Cell[][] | null; scene: string | null }
 
-export const scene = (range: number, b: number, seed: number, topic: { prop?: string; scene?: string } | null, shades = false): Scene => {
+export const scene = (range: number, b: number, seed: number, topic: Topic | null): Scene => {
   const room = range >= PROP_W + 1
   const mid = room ? Math.floor((range - PROP_W - 1) / 2) : Math.max(0, range)
   const legs = Math.max(0, range)
   const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
   const c = Math.floor(b / cycle)
   const trick = TRICKS[TRICK_NAMES[(seed + c) % TRICK_NAMES.length] ?? 'jump'] ?? jump
-  const bg = topic ? (topic.scene ?? null) : [null, null, ...SCENE_NAMES][(seed + c * 3) % (SCENE_NAMES.length + 2)] ?? null
+  const bg = topic ? (topic.scene ?? null) : ([null, null, ...SCENE_NAMES][(seed + c * 3) % (SCENE_NAMES.length + 2)] ?? null)
   const swim = bg === 'swim'
   const propName = topic ? topic.prop : PROP_NAMES[(seed + c * 7) % PROP_NAMES.length]
   const prop = swim ? undefined : propName ? PROPS[propName] : undefined
 
-  const plain = (k: Key): Frame => draw(k, shades)
+  const plain = (k: Key): Frame => draw(k)
   const act = (i: number, x: number): Scene => {
-    if (swim) return { x, frame: { rows: front(so(i % 6 < 3 ? 'open' : 'right', i % 4 < 2 ? 'up' : 'one-up'), shades), offset: 0 }, prop: null, scene: bg }
-    const frame: Frame = { rows: front(prop?.pose(i) ?? so('open'), shades), offset: 0 }
+    if (swim) return { x, frame: { rows: front(so(i % 6 < 3 ? 'open' : 'right', i % 4 < 2 ? 'up' : 'one-up')), offset: 0 }, prop: null, scene: bg }
+    const frame: Frame = { rows: front(prop?.pose(i) ?? so('open')), offset: 0 }
     if (!room || !prop) return { x, frame, prop: null, scene: bg }
     return { x, frame, prop: prop.render(i), scene: bg }
   }
@@ -371,6 +403,74 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
       if (v === 0) put(x, h - 1, { ch: (x + (b >> 2)) % 2 ? '✿' : '❀', fg: FLOWER_COLORS[x % FLOWER_COLORS.length] })
       else if (v === 1) put(x, h - 1, { ch: ',', fg: '#6CC24A' })
     }
+  } else if (s.scene === 'rain' || s.scene === 'snow' || s.scene === 'love' || s.scene === 'underwater') {
+    // Things that fall (rain, snow) or rise (hearts, bubbles), one column at a time.
+    const rises = s.scene === 'love' || s.scene === 'underwater'
+    const every = s.scene === 'rain' ? 3 : s.scene === 'snow' ? 4 : 6
+    const speed = s.scene === 'rain' || s.scene === 'underwater' ? b : b >> 1
+    for (let x = 0; x < width; x++) {
+      if (cellHash(x, 5) % every) continue
+      const t = (speed + cellHash(x, 6)) % (h + 2)
+      const y = rises ? h - 1 - t : t
+      const pick = cellHash(x, 7)
+      const cell: Cell =
+        s.scene === 'rain'
+          ? { ch: '╎', fg: '#7FB2E5' }
+          : s.scene === 'snow'
+            ? { ch: ['*', '·', '❄'][pick % 3] ?? '*', fg: '#F5F5F5' }
+            : s.scene === 'love'
+              ? { ch: '♥', fg: [PINK, RED, '#E0607E'][pick % 3] }
+              : { ch: pick % 2 ? 'o' : '°', fg: '#7FB2E5' }
+      put(x, y, cell)
+    }
+    if (s.scene === 'snow') for (let x = 0; x < width; x++) put(x, h - 1, { ch: '▁', fg: '#F5F5F5' })
+    if (s.scene === 'underwater') {
+      for (let x = 0; x < width; x++) if (cellHash(x, 8) % 7 === 0) put(x, h - 1, { ch: (x + (b >> 2)) % 2 ? ')' : '(', fg: '#3CC8B4' })
+      const fx = ((b >> 1) + (seed % width)) % (width + 3)
+      ;[...'><>'].forEach((ch, i) => put(fx - 3 + i, 1, { ch, fg: '#E8A33D' }))
+      const gx = width - (((b >> 1) + (seed >>> 3)) % (width + 3))
+      ;[...'<><'].forEach((ch, i) => put(gx + i, h - 2, { ch, fg: '#F2D04B' }))
+    }
+  } else if (s.scene === 'sunny') {
+    put(width - 3, 0, { ch: '☀', fg: '#F2C744' })
+    for (let k = 0; k < 2; k++) {
+      const cx = (((b >> 3) + cellHash(k, 10)) % (width + 4)) - 2
+      put(cx, k, { ch: '☁', fg: '#C8D6E5' })
+      put(cx + 1, k, { ch: '☁', fg: '#C8D6E5' })
+    }
+  } else if (s.scene === 'city') {
+    // A skyline along the back, windows switching on and off.
+    for (let x = 0; x < width; x++) {
+      const tall = 1 + (cellHash(x >> 2, 11) % 2)
+      for (let y = h - tall; y < h; y++) {
+        const lit = cellHash(x, y) % 3 === 0 && cellHash(x, y + (b >> 3)) % 4 !== 0
+        put(x, y, lit ? { ch: '▪', fg: '#F2D04B', bg: '#3A3F4B' } : { ch: '█', fg: '#3A3F4B' })
+      }
+    }
+    put(width - 3, 0, { ch: '☾', fg: '#F2D04B' })
+  } else if (s.scene === 'fireworks') {
+    // Three bursts at a time, each one rising, opening into a ring and fading.
+    for (let k = 0; k < 3; k++) {
+      const t = b + k * 5
+      const p = t % 14
+      const cx = cellHash(k, Math.floor(t / 14)) % width
+      const color = CONFETTI_COLORS[(k + Math.floor(t / 14)) % CONFETTI_COLORS.length]
+      if (p < 2) put(cx, h - 1 - p, { ch: '·', fg: color })
+      else if (p < 7) {
+        const r = p - 1
+        const sparks: [number, number, string][] = [[-r, 0, '*'], [r, 0, '*'], [-(r >> 1), -1, '·'], [r >> 1, -1, '·'], [-(r >> 1), 1, '·'], [r >> 1, 1, '·']]
+        for (const [dx, dy, ch] of sparks) put(cx + dx, 1 + dy, { ch: p > 5 ? '·' : ch, fg: color })
+      }
+    }
+  } else if (s.scene === 'matrix') {
+    for (let x = 0; x < width; x++) {
+      if (cellHash(x, 14) % 2) continue
+      const head = (b + cellHash(x, 15)) % (h + 4)
+      for (let t = 0; t < 3; t++) {
+        const y = head - t
+        if (y >= 0 && y < h) put(x, y, { ch: cellHash(x, y + b) % 2 ? '1' : '0', fg: t === 0 ? '#B6FFB6' : '#3C9D3C' })
+      }
+    }
   } else if (s.scene === 'party') {
     for (let x = 0; x < width; x++) {
       if (cellHash(x, 9) % 4) continue
@@ -381,16 +481,17 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
 
   // Clawd, with the hat riding on its head through every sink and hop.
   const swim = s.scene === 'swim'
-  const sprite: Rows = outfit.hat ? [pad(outfit.hat), ...s.frame.rows] : s.frame.rows
+  const hat = outfit.hatAlt && (b >> 1) % 2 ? outfit.hatAlt : outfit.hat
+  const sprite: Rows = hat ? [pad(hat), ...s.frame.rows] : s.frame.rows
   const rows = shift(sprite, s.frame.offset + (swim ? 1 : 0), h)
   if (s.frame.poof && s.frame.offset > 0) rows[0] = [[POOF[s.frame.poof], 'n']]
   rows.forEach((spans, y) => {
     let x = s.x
     for (const [text, kind] of spans)
       for (const ch of text) {
-        if (kind === 'e') put(x, y, { ch, fg: body, bg: EYE_BG })
+        if (kind === 'e' && ch !== '█') put(x, y, { ch, fg: body, bg: EYE_BG })
         else if (kind === 'l') put(x, y, { ch, fg: EYE_BG, bg: body })
-        else if (kind === 's' && outfit.shirt && ch === '█') put(x, y, { ch: outfit.shirt.ch, fg: outfit.shirt.color, bg: body })
+        else if (kind === 'e') put(x, y, { ch, fg: body })
         else if (ch !== ' ') put(x, y, { ch, fg: kind.startsWith('#') ? kind : body })
         else put(x, y, { ch: ' ' }) // Clawd is solid: the scene does not show through
         x++
@@ -430,16 +531,19 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'UserMessage' }, async ($, e, next) => {
     if (e.surface !== 'terminal' || e.props.origin.kind !== 'composer') return next(e)
-    const seed = hash(e.requestId)
+    // Seeded by the text, not the message id: a fresh prompt's id changes once it is stored,
+    // which would re-roll its color and outfit a moment after you send it.
+    const seed = hash(e.props.text)
     const body = COLORS[seed % COLORS.length] ?? '#D77757'
-    const outfit = OUTFITS[(seed >>> 12) % OUTFITS.length] ?? { name: 'plain' }
+    const topic = topicOf(e.props.text)
+    const outfit = OUTFITS.find(o => o.name === topic?.outfit) ?? OUTFITS[(seed >>> 12) % OUTFITS.length] ?? { name: 'plain' }
     const b = e.props.onScreen === null ? 0 : await read($, beat)
 
     const cols = Math.max(40, (e.viewport?.columns ?? 80) - 2)
     const longest = Math.max(...e.props.text.split('\n').map(l => l.length), 1)
     const textW = Math.min(longest + 4, cols - W - PROP_W - 4)
     const range = cols - textW - W - 1
-    const s = scene(range, b + (seed >>> 4), seed >>> 8, topicOf(e.props.text), outfit.shades)
+    const s = scene(range, b + (seed >>> 4), seed >>> 8, topic)
     const grid = paint(s, range + W, outfit, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)

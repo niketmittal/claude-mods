@@ -1,6 +1,6 @@
 {
   "name": "eta",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shows a live, self-calibrating ETA for the current turn, pings you when long work finishes, and runs /side tasks in the background.",
   "types": "./types/index.d.ts",
   "author": {

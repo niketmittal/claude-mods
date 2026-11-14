@@ -148,3 +148,16 @@ test('every prop frame is 8 wide and 4 tall', () => {
       for (const r of rows) expect(r).toHaveLength(8)
     }
 })
+
+test('a fresh prompt opens on its activity', () => {
+  expect(scene(40, 0, 5, { prop: 'coffee' }).prop).not.toBeNull()
+  expect(scene(40, 0, 5, { crew: 'catch' }).extras.some(e => e.kind === 'friend')).toBe(true)
+  expect(scene(40, 0, 5, { crew: 'class' }).extras.some(e => e.kind === 'cells')).toBe(true)
+})
+
+test('small things are small: mug, camera and book fit beside Clawd at a fraction of its size', () => {
+  for (const name of ['coffee', 'camera', 'book', 'trophy']) {
+    const cols = new Set((PROPS[name]?.render(0) ?? []).flatMap(r => r.map((c, x) => (c.ch !== ' ' ? x : -1))).filter(x => x >= 0))
+    expect(cols.size).toBeLessThanOrEqual(6)
+  }
+})

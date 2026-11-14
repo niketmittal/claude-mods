@@ -305,24 +305,26 @@ const hammer: Prop = {
   },
 }
 
-// A mug of coffee: steam curls up; every few beats Clawd lifts it and sips, eyes closed.
+// A mug of coffee, Clawd-sized, held at its hand: steam curls up, and every few
+// beats Clawd lifts it to its face and sips, eyes closed.
 const coffee: Prop = {
   pose: i => (i % 8 >= 4 && i % 8 < 7 ? so('closed', 'one-up') : so('right')),
   render: i => {
     const sip = i % 8 >= 4 && i % 8 < 7
-    const mug = ['WccccW..', 'WWWWWWW.', 'WWWWWW.W', '.WWWWWW.']
+    const mug = ['WcW.', 'WWWh', 'WWW.']
     let art = stamp(EMPTY(), mug, 0, sip ? 2 : 4)
-    if (!sip) art = stamp(art, i % 2 ? ['..s..s..', '.s..s...', '..s..s..'] : ['.s..s...', '..s..s..', '.s..s...'], 0, 0)
-    return pixels(art, { W: WHITE, c: '#6B3E26', s: GRAY })
+    if (!sip) art = stamp(art, i % 2 ? ['.s..', 's.s.', '.s..'] : ['s.s.', '.s..', 's.s.'], 0, 1)
+    return pixels(art, { W: WHITE, c: '#6B3E26', h: WHITE, s: GRAY })
   },
 }
 
-// An open book: Clawd reads; every few beats a page lifts, stands up and turns over.
-const PAGE_FLIP = [[], [[5, 3], [6, 3]], [[3, 1], [3, 2], [3, 3]], [[1, 3], [2, 3]]]
+// A small open book in Clawd's hands: it reads; every few beats a page lifts, stands up
+// and turns over.
+const PAGE_FLIP = [[], [[3, 4]], [[2, 3]], [[1, 4]]]
 const book: Prop = {
   pose: i => (i % 12 === 11 ? so('closed') : so('right')),
   render: i => {
-    let art = stamp(EMPTY(), ['PPPbPPP.', 'LLLbLLL.', 'PPPbPPP.', 'BBBBBBB.'], 0, 4)
+    let art = stamp(EMPTY(), ['PPbPP', 'LLbLL', 'BBBBB'], 0, 5)
     for (const [x, y] of PAGE_FLIP[i % 6 < 4 ? i % 6 : 0] ?? []) art = stamp(art, ['P'], x, y)
     return pixels(art, { P: WHITE, L: GRAY, b: WOOD, B: WOOD })
   },
@@ -342,25 +344,26 @@ const guitar: Prop = {
   },
 }
 
-// A trophy, held up and gleaming, sparkles winking around it.
+// A small trophy, raised up and down in triumph, a gleam running across it.
 const trophy: Prop = {
   pose: i => (i % 4 < 2 ? so('open', 'up') : so('wink', 'one-up')),
   render: i => {
-    let art = stamp(EMPTY(), ['.GGGGGG.', 'GGGGGGGG', 'G.GGGG.G', '.GGGGGG.', '...GG...', '...GG...', '.GGGGGG.'], 0, i % 4 < 2 ? 0 : 1)
-    art = stamp(art, ['w'], 2 + (i % 4), i % 4 < 2 ? 1 : 2)
-    const sparkle: Overlay[] = i % 2 ? [[0, 0, '✦', WHITE], [7, 2, '✧', WHITE]] : [[7, 0, '✧', WHITE], [0, 2, '✦', WHITE]]
+    const up = i % 4 < 2
+    let art = stamp(EMPTY(), ['GGGGG', 'GGGGG', '.GGG.', '..G..', '.GGG.'], 0, up ? 1 : 3)
+    art = stamp(art, ['w'], i % 4, up ? 1 : 3)
+    const sparkle: Overlay[] = up ? [[5, 0, '✦', WHITE]] : [[5, 1, '✧', WHITE]]
     return pixels(art, { G: GOLD, w: WHITE }, sparkle)
   },
 }
 
-// A camera: Clawd poses with a wink, then the flash goes off.
+// A little camera at Clawd's hand: it poses with a wink, then the flash goes off.
 const camera: Prop = {
   pose: i => (i % 6 < 3 ? so('right', 'one-up') : so('wink', 'down')),
   render: i => {
     const flash = i % 6 === 4
-    const art = stamp(EMPTY(), [flash ? '.WW.....' : '.ff.....', 'GGGGGGGG', 'GGlllGrG', 'GlDwDlGG', 'GGlllGGG', 'GGGGGGGG'], 0, 2)
-    const burst: Overlay[] = flash ? [[0, 0, '✦', WHITE], [2, 0, '✦', WHITE], [1, 0, '·', WHITE], [3, 0, '·', WHITE]] : []
-    return pixels(art, { G: GRAY, f: LIGHT, W: WHITE, l: LIGHT, D: DARK, w: WHITE, r: '#E0607E' }, burst)
+    const art = stamp(EMPTY(), [flash ? '.WW..' : '.ff..', 'GGGGG', 'GlDlr', 'GGGGG'], 0, 3)
+    const burst: Overlay[] = flash ? [[0, 0, '✦', WHITE], [2, 0, '✦', WHITE], [1, 0, '·', WHITE]] : []
+    return pixels(art, { G: GRAY, f: LIGHT, W: WHITE, l: LIGHT, D: DARK, r: '#E0607E' }, burst)
   },
 }
 
@@ -538,7 +541,7 @@ export const topicOf = (text: string): Topic | null => {
 // One lap: walk right to the middle, do the prompt's activity, walk on, turn,
 // walk back to the middle, do a random trick, walk home, turn. Each lap picks a
 // new trick, and for a prompt with no topic a new activity and scene.
-const ACT = 26
+const ACT = 36
 const TRICK = 30
 const TURN_R = ['right-12', 'front', 'up', 'front', 'left-12']
 const TURN_L = ['left-12', 'front', 'up', 'front', 'right-12']
@@ -572,7 +575,7 @@ const board = (word: string, i: number): Cell[][] => {
 export const scene = (range: number, b: number, seed: number, topic: Topic | null): Scene => {
   const legs = Math.max(0, range)
   // The topic sets the lap; with no topic, each lap draws its own scene, crew and prop.
-  const lapGuess = Math.floor(b / Math.max(1, 2 * legs + 66))
+  const lapGuess = Math.floor(b / Math.max(1, 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK))
   const crew: Crew | null = topic ? (topic.crew ?? null) : ([null, null, null, 'family', 'catch', 'class'] as const)[(seed + lapGuess * 5) % 6] ?? null
   const students = Math.min(4, Math.floor((range - PROP_W - 2) / (TINY_W + 1)))
   const need = crew === 'catch' ? GAP + W : crew === 'class' && students > 0 ? PROP_W + 2 + students * (TINY_W + 1) : PROP_W + 1
@@ -656,8 +659,8 @@ export const scene = (range: number, b: number, seed: number, topic: Topic | nul
   })
   const turnAt = (x: number, names: string[], i: number, dir: 1 | -1): Scene => ({ x, frame: plain(turnKey(names[i] ?? 'front')), prop: null, scene: bg, extras: family(x, dir, false) })
 
+  // The lap opens on the activity, so a fresh prompt shows it at once.
   const segs: [number, (i: number) => Scene][] = [
-    [mid, i => walkTo(0, 1, i)],
     [ACT, i => act(i, mid)],
     [legs - mid, i => walkTo(mid, 1, i)],
     [TURN_R.length, i => turnAt(legs, TURN_R, i, 1)],
@@ -665,6 +668,7 @@ export const scene = (range: number, b: number, seed: number, topic: Topic | nul
     [TRICK, i => doTrick(i, mid)],
     [mid, i => walkTo(mid, -1, i)],
     [TURN_L.length, i => turnAt(0, TURN_L, i, -1)],
+    [mid, i => walkTo(0, 1, i)],
   ]
   for (const [len, f] of segs) {
     if (t < len) return f(t)
@@ -852,6 +856,9 @@ const runs = (row: Cell[]) => {
   return out
 }
 
+// When each prompt was first drawn, so its own animation starts at the beginning.
+const firstBeat = new Map<string, number>()
+
 export const COLORS = ['#D77757', '#E8A33D', '#6CC24A', '#4FA3E0', '#B57EDC', '#E0607E', '#3CC8B4', '#F2D04B']
 
 export const register: Register = on => {
@@ -875,7 +882,8 @@ export const register: Register = on => {
     const longest = Math.max(...e.props.text.split('\n').map(l => l.length), 1)
     const textW = Math.min(longest + 4, cols - W - PROP_W - 4)
     const range = cols - textW - W - 1
-    const s = scene(range, b + (seed >>> 4), seed >>> 8, topic)
+    if (e.props.onScreen !== null && !firstBeat.has(e.props.text)) firstBeat.set(e.props.text, b)
+    const s = scene(range, b - (firstBeat.get(e.props.text) ?? b), seed >>> 8, topic)
     const grid = paint(s, range + W, outfit, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)

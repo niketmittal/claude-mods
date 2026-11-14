@@ -4,7 +4,8 @@ Claude Code mods by Niket.
 
 ## buddy
 
-Clawd lives on every prompt you type: its own color, its own hat, and something to do that fits what you asked. [More →](buddy/)
+Clawd lives on every prompt you type: its own color, its own hat, and something to do that fits what you asked. 
+[More →](buddy/)
 
 ![Four prompts, four Clawds: coffee, a game of catch, a classroom, a rocket launch in space](buddy/media/hero.gif)
 

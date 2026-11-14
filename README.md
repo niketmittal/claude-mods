@@ -54,9 +54,11 @@ Original hero looks (not any real character), each with its own move. Capes trai
 
 ### Tricks
 
-Taken from Claude Code's own Clawd animations: jump, skip, spin, peekaboo, drop, waddle, look, wink, boop, tap, sneeze, turn, coin-hop, plus wave, shiver, moonwalk, bounce, doze and dab.
+Taken from Claude Code's own Clawd animations: jump, skip, spin, peekaboo, drop, waddle, look, wink, boop, tap, sneeze, turn, coin-hop, plus wave, shiver, moonwalk, bounce, doze, dab, cartwheel, flip, pogo, slide, tiptoe, sleepwalk, nod, yawn, hiccup, wiggle, duck, salute, shrug and stomp (34 in all).
 
 ![Clawd doing jump, spin, peekaboo, moonwalk, coin-hop, dab, sneeze and wave](buddy/media/tricks.gif)
+
+![Clawd doing a cartwheel, a flip, pogo, slide, tiptoe, sleepwalk, wiggle, duck, stomp and shrug](buddy/media/tricks2.gif)
 
 ### Looks
 

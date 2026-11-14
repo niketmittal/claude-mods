@@ -148,6 +148,26 @@ export const TRICKS: Record<string, Key[]> = {
   bounce: [...[1, -1, 1, -1, 1, -1].flatMap(o => Se(o > 0 ? 'default' : 'arms-up', 2, { offset: o })), NO],
   doze: [...Se(so('closed'), 4), ...Se(so('closed'), 4, { offset: 1 }), ...Se('arms-up', 2), ...Se('look-left', 2), ...Se('look-right', 2), NO],
   dab: [...Se(so('left', 'one-up'), 4), ...Se(so('right', 'up'), 4), NO],
+  cartwheel: [
+    ...Mr(['right-12', 'right-55']).map((k, n) => ({ ...k, x: n })),
+    ...Mr(['edge', 'back-125', 'back']).map((k, n) => ({ ...k, x: 2 + n, offset: -1 })),
+    ...Mr(['left-55', 'left-12']).map((k, n) => ({ ...k, x: 5 + n })),
+    ...Se('arms-up', 2, { x: 6 }), ...Cr().map(k => ({ ...k, x: 6 })), ...Se('default', 1, { x: 6 }),
+    ...[5, 4, 3, 2, 1, 0].flatMap(x => Se(so('left', 'down', x % 2 ? 'left' : 'right'), 1, { x })), NO,
+  ],
+  flip: [...Cr(), ...Mr(['back']).map(k => ({ ...k, offset: -1 })), ...Mr(['back-125', 'edge']).map(k => ({ ...k, offset: -1 })), ...Se('arms-up', 1, { offset: -1 }), ...Cr(), ...Se('arms-up', 2), NO],
+  pogo: [...[0, 1, 2, 3, 4, 5].flatMap(x => [...Se('arms-up', 1, { x, offset: -1 }), ...Se('default', 1, { x, offset: 1 })]), ...[4, 2, 0].flatMap(x => Se(so('left'), 1, { x })), NO],
+  slide: [...Se(so('right', 'up'), 1), ...[1, 2, 3, 4, 5, 6].flatMap(x => Se(so('right', 'up'), 1, { x })), ...Se(so('wink', 'up'), 2, { x: 6 }), ...[5, 3, 1].flatMap(x => Se(so('left'), 1, { x })), NO],
+  tiptoe: [...[0, 1, 2, 3, 4].flatMap(x => Se(so(x % 2 ? 'left' : 'right', 'down', x % 2 ? 'left' : 'right'), 2, { x })), ...Se('look-left', 2, { x: 4 }), ...Se('look-right', 2, { x: 4 }), ...[3, 1].flatMap(x => Se(so('left'), 1, { x })), NO],
+  sleepwalk: [...[0, 1, 2, 3, 4, 5].flatMap(x => Se(so('closed', 'up', x % 2 ? 'left' : 'right'), 2, { x })), ...Se(so('open'), 2, { x: 5 }), ...Se('arms-up', 1, { x: 5, offset: -1 }), ...[4, 2, 0].flatMap(x => Se(so('left'), 1, { x })), NO],
+  nod: [...Array.from({ length: 4 }, () => [...Se(so('closed'), 1, { offset: 1 }), ...Se('default', 1)]).flat(), ...Se(so('wink'), 2), NO],
+  yawn: [...Se(so('closed', 'one-up'), 2), ...Se(so('closed', 'up'), 4), ...Se(so('closed', 'up'), 2, { offset: -1 }), ...Se(so('closed'), 2), ...Se(so('wink'), 2), NO],
+  hiccup: [...Se('default', 3), ...Se(so('open', 'up'), 1, { offset: -1 }), ...Se('default', 3), ...Se(so('open', 'up'), 1, { offset: -1 }), ...Se('look-left', 2), ...Se(so('closed'), 1), NO],
+  wiggle: [...Array.from({ length: 4 }, (_, k) => Se(so(k % 2 ? 'left' : 'right', k % 2 ? 'up' : 'one-up', k % 2 ? 'left' : 'right'), 2, { x: k % 2 })).flat(), ...Se('arms-up', 2), NO],
+  duck: [...Se('default', 1, { offset: 1 }), ...Se('default', 3, { offset: 2 }), ...Se('look-left', 2, { offset: 2 }), ...Se('look-right', 2, { offset: 2 }), ...Se('arms-up', 1, { offset: -1 }), ...Se('arms-up', 2), ...Cr(), NO],
+  salute: [...Se(so('open', 'one-up'), 2), ...Se(so('wink', 'one-up'), 3), ...Se(so('open', 'one-up'), 2), ...Se('default', 1), NO],
+  shrug: [...Se('look-left', 1), ...Se(so('left', 'up'), 2), ...Se('look-right', 1), ...Se(so('right', 'up'), 2), ...Se('default', 1), ...Se(so('wink'), 1), NO],
+  stomp: [...Array.from({ length: 4 }, (_, k) => [...Se(so('open', 'down', k % 2 ? 'left' : 'right'), 1), ...Se('default', 1, { offset: 1, poof: 'dot' })]).flat(), ...Se('arms-up', 2), NO],
 }
 const TRICK_NAMES = Object.keys(TRICKS)
 

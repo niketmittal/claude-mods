@@ -201,6 +201,9 @@ export const OUTFITS: Outfit[] = [
   { name: 'cap', hat: [['  ▄███▄▄▄', '#4FA3E0']] },
   { name: 'sombrero', hat: [['▁▁▄███▄▁▁', '#E8A33D']] },
   { name: 'alien', hat: [['   ╿ ╿   ', '#6CC24A']] },
+  { name: 'moon badge', hat: [['    ☾    ', '#F2D04B']] },
+  { name: 'bolt badge', hat: [['    ↯    ', '#F2D04B']] },
+  { name: 'robo antenna', hat: [['    ╿    ', '#9A9AA0']], hatAlt: [['    ╽    ', '#E0607E']] },
 ]
 
 // ---------------------------------------------------------------------------
@@ -753,7 +756,8 @@ const PROP_NAMES = Object.keys(PROPS).filter(n => n !== 'umbrella')
 const SCENE_NAMES = ['swim', 'space', 'garden', 'party', 'night', 'rain', 'snow', 'sunny', 'city', 'underwater', 'fireworks', 'matrix', 'love']
 
 export type Crew = 'family' | 'catch' | 'class'
-export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew }
+export type Hero = 'super' | 'night' | 'speed' | 'swing' | 'ranger' | 'robo'
+export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew; hero?: Hero }
 
 const TOPICS: [RegExp, Topic][] = [
   // An item named outright shows that item.
@@ -769,6 +773,13 @@ const TOPICS: [RegExp, Topic][] = [
   [/\b(umbrellas?)\b/, { prop: 'umbrella', scene: 'rain' }],
   [/\b(pancakes?|pan)\b/, { prop: 'pan', outfit: 'chef' }],
   [/\b(magnifier|magnifying)\b/, { prop: 'magnifier' }],
+  // Original heroes (no real characters): flying, rooftop, speed, rope, jetpack, robot.
+  [/\b(hero|heroes|super|superhero|save|rescue|power|powerful|strong)\b/, { hero: 'super', outfit: 'plain', scene: 'sunny' }],
+  [/\b(vigilante|dark|darkness|shadow|midnight)\b/, { hero: 'night', outfit: 'moon badge', scene: 'city' }],
+  [/\b(fast|faster|speed|quick|quickly|asap|hurry|urgent|zoom)\b/, { hero: 'speed', outfit: 'bolt badge' }],
+  [/\b(swing|climb|climbing|jump|jumping|leap|parkour|obstacle|hurdle)\b/, { hero: 'swing', outfit: 'plain' }],
+  [/\b(jetpack|fly|flying|hover|ranger)\b/, { hero: 'ranger', outfit: 'plain', scene: 'space' }],
+  [/\b(robot|robots|robo|bot|bots|automate|automation|ai|agent|agents)\b/, { hero: 'robo', outfit: 'robo antenna' }],
   [/^\s*(yes|yep|yeah|ok|okay|go|sure|do it|continue|proceed|approved?|lgtm)\b/, { prop: 'approve' }],
   [/\b(scan|scanner|barcode|qr)\b/, { prop: 'scanner' }],
   [/\b(shop|store|orders?|customers?|delivery|cart|checkout|products?)\b/, { prop: 'cart' }],
@@ -856,6 +867,7 @@ export type Extra =
   | { kind: 'friend'; x: number; pose: Pose }
   | { kind: 'cells'; x: number; rows: Cell[][] }
   | { kind: 'ball'; x: number; y: number }
+  | { kind: 'mark'; x: number; y: number; ch: string; fg: string; front?: boolean } // one glyph: a cape, a rope, a flame
 
 export type Scene = { x: number; frame: Frame; prop: { rows: Cell[][]; dx: number } | null; scene: string | null; extras: Extra[] }
 
@@ -890,6 +902,85 @@ const transition = (rows: Cell[][], i: number): Cell[][] => {
   )
 }
 
+// ---- Heroes: original looks, each with its own move for the activity. ----
+const CAPE = '#D7263D'
+const NIGHT_CAPE = '#3A3F6B'
+const mark = (x: number, y: number, ch: string, fg: string, front = false): Extra => ({ kind: 'mark', x, y, ch, fg, front })
+const MIRROR: Record<string, string> = { '▐': '▌', '▌': '▐', '▟': '▙', '▙': '▟', '▛': '▜', '▜': '▛', '▗': '▖', '▖': '▗', '▝': '▘', '▘': '▝' }
+const mirror = (ch: string) => MIRROR[ch] ?? ch
+
+export const heroAct = (hero: Hero, i: number, mid: number, legs: number, bg: string | null): Scene => {
+  const at = (x: number) => Math.max(0, Math.min(legs, x))
+  const still = (rows: Rows, x: number, extras: Extra[], offset = 0): Scene => ({ x: at(x), frame: { rows, offset }, prop: null, scene: bg, extras })
+  const flap = i % 2 === 0
+
+  if (hero === 'super') {
+    // Takes off, flies out and back with the cape streaming behind, lands.
+    const span = Math.min(12, legs - mid)
+    const path = [0, 0, ...Array.from({ length: 14 }, (_, k) => Math.round((span * (k + 1)) / 14)), ...Array(4).fill(span), ...Array.from({ length: 14 }, (_, k) => Math.round(span - (span * (k + 1)) / 14)), 0, 0]
+    const x = mid + (path[i] ?? 0)
+    const prev = mid + (path[Math.max(0, i - 1)] ?? 0)
+    const dir = x >= prev ? 1 : -1
+    const flying = i >= 2 && i < ACT - 2
+    // The cape streams behind in a wave, two frames of cloth.
+    const wave = flap
+      ? [['█', '▀', '▀', ' '], ['█', '█', '▄', '▄']]
+      : [['█', '█', '▄', ' '], ['█', '▀', '▀', '▀']]
+    const cape = flying
+      ? wave.flatMap((row, y) => row.map((ch, k) => mark(dir > 0 ? x - 1 - k : x + 9 + k, y, ch, CAPE)).filter(m => m.kind === 'mark' && m.ch !== ' '))
+      : [mark(x - 1, 1, '▐', CAPE), mark(x - 1, 2, '█', CAPE), mark(x - 1, 3, '▀', CAPE)]
+    return still(front(so(dir > 0 ? 'right' : 'left', flying ? 'one-up' : 'down')), x, cape, flying ? -1 : 0)
+  }
+
+  if (hero === 'night') {
+    // On a rooftop over the city: the cape stirs in the wind, then flares wide.
+    const flare = i % 12 >= 9
+    // A thick cape on both sides; in a gust it flares out wide like wings.
+    const side = (y: number): [string, string][] =>
+      flare ? [['▟', '█'], ['█', '█'], ['▀', '▜']][y - 1]!.map((ch, k) => [ch, k ? 'in' : 'out'] as [string, string]) : [['▐', 'in'], ['█', 'in'], [flap ? '▛' : '▜', 'in']].slice(y - 1, y) as [string, string][]
+    const cape = [1, 2, 3].flatMap(y =>
+      side(y).flatMap(([ch, where]) => {
+        const k = where === 'in' ? 1 : 2
+        return [mark(mid - k, y, ch, NIGHT_CAPE), mark(mid + 8 + k, y, mirror(ch), NIGHT_CAPE)]
+      }),
+    )
+    return still(front(so(flare ? 'open' : i % 6 < 3 ? 'left' : 'right', flare ? 'up' : 'down')), mid, cape)
+  }
+
+  if (hero === 'speed') {
+    // Dashes the length of the row and back, speed lines streaking behind.
+    const run = Math.max(1, legs)
+    const t = (i * 3) % (2 * run)
+    const forward = t < run
+    const x = forward ? t : 2 * run - t
+    const lines = [0, 1, 2, 3].map(k => mark(forward ? x - 1 - k : x + 9 + k, 2 + (k % 2), k < 2 ? '═' : '─', '#F2D04B'))
+    return still(facing(forward ? 'right-30' : 'left-30', i), x, lines)
+  }
+
+  if (hero === 'swing') {
+    // Parkour: runs at a crate, vaults clean over it, lands and runs back.
+    const crate = Math.min(legs, mid + 12)
+    const t = i % 36
+    const forward = t < 18
+    const x = forward ? mid + Math.round((t * 24) / 18) - 6 : mid + 18 - Math.round(((t - 18) * 24) / 18)
+    const near = Math.abs(x + 4 - (crate + 1)) <= 5
+    const box = [mark(crate, 2, '▄', WOOD), mark(crate + 1, 2, '▄', WOOD), mark(crate, 3, '█', WOOD), mark(crate + 1, 3, '█', WOOD)]
+    return still(near ? front(so(forward ? 'right' : 'left', 'up', 'both')) : facing(forward ? 'right-30' : 'left-30', i), x, box, near ? -1 : 0)
+  }
+
+  if (hero === 'ranger') {
+    // Hovers on jetpack flames, drifting among the stars.
+    const x = mid + ([0, 1, 2, 1, 0, -1, -2, -1][Math.floor(i / 2) % 8] ?? 0)
+    const flames = [2, 6].map(k => mark(x + k, 3, flap ? '▼' : '▽', flap ? '#F2D04B' : '#E8A33D', true))
+    return still(front(so('right', i % 8 < 4 ? 'up' : 'down')), x, flames, -1)
+  }
+
+  // Robo: a stiff robot dance, two steps right, two left, beeping.
+  const steps = [0, 0, 2, 2, 4, 4, 2, 2][Math.floor(i / 2) % 8] ?? 0
+  const beep = i % 4 < 2 ? [mark(mid + steps + 9, 1, i % 4 ? '·' : '♪', '#4FC1E9', true)] : []
+  return still(front(so(i % 8 === 7 ? 'closed' : 'open', i % 4 < 2 ? 'up' : 'down', i % 4 < 2 ? 'left' : 'right')), mid + steps, beep)
+}
+
 export const scene = (range: number, b: number, seed: number, topics: Topic | Topic[] | null): Scene => {
   const legs = Math.max(0, range)
   const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
@@ -922,6 +1013,7 @@ export const scene = (range: number, b: number, seed: number, topics: Topic | To
 
   const plain = (k: Key): Frame => draw(k)
   const act = (i: number, x: number): Scene => {
+    if (topic?.hero) return heroAct(topic.hero, i, x, legs, bg)
     const base = { x, scene: bg, extras: family(x, 1, false) }
     if (swim) return { ...base, frame: { rows: front(so(i % 6 < 3 ? 'open' : 'right', i % 4 < 2 ? 'up' : 'one-up')), offset: 0 }, prop: null }
     if (room && crew === 'catch') {
@@ -1168,6 +1260,7 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
       }
     } else if (e.kind === 'friend') sprite(front(e.pose), e.x, h - 3, crewColor(4))
     else if (e.kind === 'cells') e.rows.forEach((r, i) => r.forEach((c, j) => put(e.x + j, h - e.rows.length + i, c)))
+    else if (e.kind === 'mark' && !e.front) put(e.x, e.y, { ch: e.ch, fg: e.fg })
   }
 
   // Clawd, with the hat riding on its head through every sink and hop.
@@ -1186,6 +1279,7 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
     }),
   )
   for (const e of s.extras) if (e.kind === 'ball') put(e.x, Math.max(0, h - 2 - e.y), { ch: '●', fg: '#E0607E' })
+  for (const e of s.extras) if (e.kind === 'mark' && e.front) put(e.x, e.y, { ch: e.ch, fg: e.fg })
 
   if (swim)
     for (let x = 0; x < width; x++) put(x, h - 1, { ch: (x + (b >> 1)) % 3 === 0 ? '≈' : '~', fg: '#4FA3E0' })

@@ -228,3 +228,17 @@ test('a prompt with several topics does one per lap, handing over with a sparkle
   const last = scene(30, 35, 1, topics).prop?.rows.flat().map(c => c.ch).join('') ?? ''
   expect(last.trim()).toBe('')
 })
+
+test('heroes: each has its own move, flying heroes leave the ground, capes stay off Clawd', () => {
+  expect(topicOf('be a hero')).toMatchObject({ hero: 'super' })
+  expect(topicOf('do it fast')).toMatchObject({ hero: 'speed' })
+  expect(topicOf('automate this with an agent')).toMatchObject({ hero: 'robo' })
+  const fly = scene(40, 10, 1, { hero: 'super', outfit: 'plain' })
+  expect(fly.frame.offset).toBe(-1)
+  for (const e of fly.extras) if (e.kind === 'mark') expect(e.x < fly.x || e.x > fly.x + 8).toBe(true)
+  const dash = Array.from({ length: 30 }, (_, b) => scene(40, b, 1, { hero: 'speed' }).x)
+  expect(new Set(dash).size).toBeGreaterThan(5)
+  const vault = Array.from({ length: 36 }, (_, b) => scene(40, b, 1, { hero: 'swing', outfit: 'plain' }))
+  expect(vault.some(s => s.frame.offset === -1)).toBe(true) // leaps the crate
+  expect(vault[0]?.extras.filter(e => e.kind === 'mark').length).toBe(4)
+})

@@ -42,6 +42,16 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 | ![](buddy/media/lock.gif)<br>`login`, `password`, `security`: a key unlocks a padlock | ![](buddy/media/box.gif)<br>`install`, `extension`, `package`: a parcel opens |
 | ![](buddy/media/clapper.gif)<br>`video`, `animation`, `gif`: a clapperboard snaps | ![](buddy/media/handover.gif)<br>several topics in one prompt: one per lap, swapping with a sparkle |
 
+### Heroes
+
+Original hero looks (not any real character), each with its own move. Capes trail beside Clawd and badges sit above it, never on its face.
+
+| | |
+| --- | --- |
+| ![](buddy/media/hero-super.gif)<br>`hero`, `super`, `save`: Super Clawd flies, cape streaming | ![](buddy/media/hero-night.gif)<br>`dark`, `shadow`, `midnight`: night hero on a rooftop, cape flaring |
+| ![](buddy/media/hero-speed.gif)<br>`fast`, `quick`, `asap`: speedster dashes with speed lines | ![](buddy/media/hero-swing.gif)<br>`jump`, `parkour`, `climb`: vaults over a crate |
+| ![](buddy/media/hero-ranger.gif)<br>`fly`, `hover`, `jetpack`: space ranger on jetpack flames | ![](buddy/media/hero-robo.gif)<br>`robot`, `automate`, `agent`: Robo Clawd dances |
+
 ### Tricks
 
 Taken from Claude Code's own Clawd animations: jump, skip, spin, peekaboo, drop, waddle, look, wink, boop, tap, sneeze, turn, coin-hop, plus wave, shiver, moonwalk, bounce, doze and dab.

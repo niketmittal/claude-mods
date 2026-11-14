@@ -1,34 +1,28 @@
-export type EstimateSource = 'quick' | 'claude'
-
-export type Eta = {
-  source: EstimateSource | null
-  estimateMs: number | null
-  estimatedAt: number | null
-  step: number | null
-  steps: number | null
-  label: string | null
-}
-
-export type Run = Eta & {
+// One main-thread turn and the evidence for how long it has left.
+export type Run = {
   turnId: string
   startedAt: number
-  quickMs: number | null
+  // Claude's latest remaining-minutes estimate (raw) and when it gave it.
+  claudeMs: number | null
+  claudeAt: number | null
+  // Claude's first estimate this turn, kept to learn how far off its estimates run.
   firstClaudeMs: number | null
   firstClaudeAt: number | null
+  // Progress: items in the plan (estimate steps, todos or tasks) and how many are done.
+  total: number
+  done: number
+  workStartAt: number | null
+  lastDoneAt: number | null
 }
-
-export type Factors = { quick: number; claude: number }
-
-export type Agent = Eta & { id: string; task: string; kind: string; isSide: boolean; startedAt: number }
 
 declare module 'claude-code' {
   interface PluginState {
     eta: {
       run: Run | null
       now: number
-      factors: Factors
-      agents: Agent[]
-      isHidden: boolean
+      // How much longer than estimated Claude's work really takes (median of past turns), once known.
+      factor: number | null
+      sides: string[]
     }
   }
 }

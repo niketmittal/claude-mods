@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { COLORS, OUTFITS, PROPS, TRICKS, apart, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
+import { COLORS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -241,4 +241,13 @@ test('heroes: each has its own move, flying heroes leave the ground, capes stay 
   const vault = Array.from({ length: 36 }, (_, b) => scene(40, b, 1, { hero: 'swing', outfit: 'plain' }))
   expect(vault.some(s => s.frame.offset === -1)).toBe(true) // leaps the crate
   expect(vault[0]?.extras.filter(e => e.kind === 'mark').length).toBe(4)
+})
+
+test('fashion show: Clawd stays put, twirls, and wears a new hat every few beats', () => {
+  expect(topicOf('show me the hats')).toEqual({ show: true })
+  const xs = new Set(Array.from({ length: 60 }, (_, b) => scene(40, b, 1, { show: true }).x))
+  expect(xs.size).toBe(1)
+  const hats = new Set(Array.from({ length: 10 }, (_, k) => showOutfit(k * SHOW_BEATS).name))
+  expect(hats.size).toBe(10)
+  expect(hats.has('plain')).toBe(false)
 })

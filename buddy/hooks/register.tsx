@@ -757,7 +757,7 @@ const SCENE_NAMES = ['swim', 'space', 'garden', 'party', 'night', 'rain', 'snow'
 
 export type Crew = 'family' | 'catch' | 'class'
 export type Hero = 'super' | 'night' | 'speed' | 'swing' | 'ranger' | 'robo'
-export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew; hero?: Hero }
+export type Topic = { prop?: string; scene?: string; outfit?: string; crew?: Crew; hero?: Hero; show?: boolean }
 
 const TOPICS: [RegExp, Topic][] = [
   // An item named outright shows that item.
@@ -773,6 +773,7 @@ const TOPICS: [RegExp, Topic][] = [
   [/\b(umbrellas?)\b/, { prop: 'umbrella', scene: 'rain' }],
   [/\b(pancakes?|pan)\b/, { prop: 'pan', outfit: 'chef' }],
   [/\b(magnifier|magnifying)\b/, { prop: 'magnifier' }],
+  [/\b(hats?|outfits?|fashion|wardrobe|costumes?|dress up|dressup|runway)\b/, { show: true }],
   // Original heroes (no real characters): flying, rooftop, speed, rope, jetpack, robot.
   [/\b(hero|heroes|super|superhero|save|rescue|power|powerful|strong)\b/, { hero: 'super', outfit: 'plain', scene: 'sunny' }],
   [/\b(vigilante|dark|darkness|shadow|midnight)\b/, { hero: 'night', outfit: 'moon badge', scene: 'city' }],
@@ -981,6 +982,19 @@ export const heroAct = (hero: Hero, i: number, mid: number, legs: number, bg: st
   return still(front(so(i % 8 === 7 ? 'closed' : 'open', i % 4 < 2 ? 'up' : 'down', i % 4 < 2 ? 'left' : 'right')), mid + steps, beep)
 }
 
+// Fashion show: Clawd stays on the spot and models a new hat every few beats, twirling
+// round between them, then striking a pose with a sparkle. (The hat itself is swapped
+// by the drawing, from SHOW_BEATS.)
+export const SHOW_BEATS = 6
+export const showOutfit = (b: number): Outfit => OUTFITS[1 + (Math.floor(b / SHOW_BEATS) % (OUTFITS.length - 1))] ?? { name: 'plain' }
+const fashion = (b: number, mid: number, bg: string | null): Scene => {
+  const k = b % SHOW_BEATS
+  const spin = ['right-55', 'back', 'left-55'][k]
+  const frame: Frame = spin ? draw({ pose: { facing: spin }, offset: 0, x: 0 }) : { rows: front(so(k === 4 ? 'wink' : 'open', k === 3 ? 'up' : 'one-up')), offset: 0 }
+  const sparkle = k >= 3 ? [mark(mid - 1, 1, k % 2 ? '✦' : '✧', '#F2D04B', true), mark(mid + 9, 2, k % 2 ? '✧' : '✦', '#F2D04B', true)] : []
+  return { x: mid, frame, prop: null, scene: bg, extras: sparkle }
+}
+
 export const scene = (range: number, b: number, seed: number, topics: Topic | Topic[] | null): Scene => {
   const legs = Math.max(0, range)
   const cycle = legs >= 2 ? 2 * legs + TURN_R.length + TURN_L.length + ACT + TRICK : ACT + TRICK
@@ -994,6 +1008,7 @@ export const scene = (range: number, b: number, seed: number, topics: Topic | To
   const room = range >= need
   const mid = room ? Math.floor((range - need) / 2) : Math.max(0, range)
   const trick = TRICKS[TRICK_NAMES[(seed + c) % TRICK_NAMES.length] ?? 'jump'] ?? jump
+  if (topic?.show) return fashion(b, Math.max(1, Math.floor(legs / 2)), topic.scene ?? null)
   const bg = topic ? (topic.scene ?? null) : ([null, null, ...SCENE_NAMES][(seed + c * 3) % (SCENE_NAMES.length + 2)] ?? null)
   const swim = bg === 'swim'
   const propName = topic ? topic.prop : PROP_NAMES[(seed + c * 7) % PROP_NAMES.length]
@@ -1337,7 +1352,8 @@ export const register: Register = on => {
     const range = cols - textW - W - 1
     const start = e.props.onScreen === null ? b : startBeat(e.requestId, e.props.text, b)
     const s = scene(range, b - start, seed >>> 8, topics)
-    const grid = paint(s, range + W, outfit, body, b, seed)
+    const dressed = topics.some(t => t.show) && s.extras.every(e => e.kind === 'mark') && s.prop === null ? showOutfit(b - start) : outfit
+    const grid = paint(s, range + W, dressed, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)
     return (

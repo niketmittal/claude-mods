@@ -305,22 +305,18 @@ const hammer: Prop = {
   },
 }
 
-// A mug of coffee at Clawd's hand: white, a loop handle, dark coffee
-// inside, one thin wisp of steam curling up. Every few beats Clawd lifts it to its
-// face and sips, eyes closed (no steam while it drinks).
-const MUG = ['WcW..', 'WWWh.', 'WWW.h', 'WWWh.'] // a loop handle with a hole in it
+// A mug of coffee one line tall at Clawd's hand: ▐▀ is the cup (the ▀ shows dark
+// coffee over the white), ◗ its handle, and a wisp of steam drifts in the line above.
+// Every few beats Clawd lifts it one line, to its face, and sips with eyes closed.
 const coffee: Prop = {
   pose: i => (i % 10 >= 6 && i % 10 < 9 ? so('closed', 'one-up') : so('right')),
   render: i => {
     const sip = i % 10 >= 6 && i % 10 < 9
-    const top = sip ? 2 : 4
-    let art = stamp(EMPTY(), MUG, 0, top)
-    if (!sip)
-      for (let k = 1; k <= 3; k++) {
-        const x = 1 + ((k + i) % 2) - (k === 1 ? 0 : 0)
-        art = stamp(art, [k === 3 ? 'f' : 's'], x, top - k)
-      }
-    return pixels(art, { W: WHITE, c: '#4A2A17', h: WHITE, s: '#B8B8BE', f: '#7A7A80' })
+    const y = sip ? 1 : 2
+    const rows = Array.from({ length: 4 }, () => cells(['']))
+    rows[y] = cells(['▐', WHITE], ['▀', '#4A2A17', WHITE], ['◗', WHITE])
+    if (!sip) rows[y - 1] = cells([i % 2 ? '  ~' : ' ~', '#B8B8BE'])
+    return rows
   },
 }
 

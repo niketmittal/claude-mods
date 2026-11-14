@@ -168,3 +168,11 @@ test('each message has its own clock, even with the same text', () => {
   expect(startBeat('m2', 'coffee?', 900)).toBe(900) // same text sent again later starts fresh
   expect(startBeat('m2-stored', 'coffee?', 905)).toBe(900) // its id changing moments later keeps the start
 })
+
+test('the coffee mug is one line tall', () => {
+  for (let i = 0; i < 10; i++) {
+    const rows = PROPS.coffee?.render(i) ?? []
+    const mugRows = rows.filter(r => r.some(c => c.ch === '◗'))
+    expect(mugRows).toHaveLength(1)
+  }
+})

@@ -196,10 +196,10 @@ export const EARRINGS = [
 ]
 export const earringFor = (seed: number) => ((seed >>> 20) % 3 === 0 ? EARRINGS[(seed >>> 22) % EARRINGS.length] : undefined)
 
-const HAIR = '#8B5A2B'
+const HAIR = '#C28A4E'
 const BLONDE = '#F2D04B'
 const PINK = '#FF7EB6'
-const PURPLE = '#6A4FC8'
+const PURPLE = '#8F72F0'
 const RED = '#D7263D'
 export const OUTFITS: Outfit[] = [
   { name: 'plain' },
@@ -211,14 +211,14 @@ export const OUTFITS: Outfit[] = [
   { name: 'pigtails', hat: [['▗▖▄▄▄▄▄▗▖', HAIR]] },
   { name: 'princess', hat: [['  ▄▄', HAIR], ['▴▲▴', '#F2C744'], ['▄▄', HAIR]] },
   { name: 'beanie', hat: [['  ▗▄█▄▖  ', '#4FA3E0']] },
-  { name: 'cowboy', hat: [['▁▁▟███▙▁▁', '#A0522D']] },
+  { name: 'cowboy', hat: [['▁▁▟███▙▁▁', '#C8743E']] },
   { name: 'halo', hat: [['  ╺━━━╸  ', '#F2D04B']] },
   { name: 'flower crown', hat: [['  ', 'n'], ['✿', PINK], ['❀', BLONDE], ['✿', '#B57EDC'], ['❀', PINK], ['✿', BLONDE], ['  ', 'n']] },
   { name: 'chef', hat: [['  ▟███▙  ', '#F5F5F5']] },
   { name: 'wizard', hat: [['   ▗▟▙▖', PURPLE], ['✦', BLONDE], [' ', 'n']] },
   { name: 'witch', hat: [['  ▁▁▟▙▁▁ ', PURPLE]] },
   { name: 'santa', hat: [['  ▗▄▄▄▄', RED], ['●', '#FFFFFF'], [' ', 'n']] },
-  { name: 'graduate', hat: [['  ▄▄█▄▄', '#3A3A44'], ['╻', BLONDE], [' ', 'n']] },
+  { name: 'graduate', hat: [['  ▄▄█▄▄', '#7C8DC8'], ['╻', BLONDE], [' ', 'n']] },
   { name: 'headphones', hat: [['  ╭───╮  ', '#9A9AA0']] },
   { name: 'viking', hat: [[' ▚', '#F2EBD9'], ['▄▄▄▄▄', '#9A9AA0'], ['▞ ', '#F2EBD9']] },
   { name: 'ninja', hat: [['  ▄▄▄▄▄', RED], ['╲╲', RED]] },
@@ -287,7 +287,7 @@ export const pixels = (art: string[], pal: Record<string, string>, overlay: Over
 const GRAY = '#9A9AA0'
 const LIGHT = '#C8C8C8'
 const WHITE = '#F5F5F5'
-const WOOD = '#A0522D'
+const WOOD = '#C8743E'
 const DARK = '#16232B'
 const GOLD = '#F2C744'
 
@@ -333,7 +333,7 @@ const hammer: Prop = {
     if (nail === 0) art = stamp(art, ['N'], 4, 7)
     art = stamp(art, phase < 2 ? HAMMER_UP : phase === 2 ? HAMMER_MID : HAMMER_HIT)
     const spark: Overlay[] = phase === 3 ? [[6, 2, '✦', '#F2D04B'], [7, 1, '·', '#F2D04B'], [3, 3, '·', LIGHT]] : []
-    return pixels(art, { H: LIGHT, w: WOOD, n: GRAY, N: LIGHT, B: '#8B5A2B' }, spark)
+    return pixels(art, { H: LIGHT, w: WOOD, n: GRAY, N: LIGHT, B: '#B07A45' }, spark)
   },
 }
 
@@ -451,7 +451,7 @@ const rocket: Prop = {
     const y = ROCKET_Y[i % ROCKET_Y.length] ?? 0
     const art = stamp(EMPTY(), ROCKET.map(r => (i % 2 ? r : r.replace('y', 'o').replace(/o(?=\.\.\.\.)/, 'y'))), 0, y)
     const smoke: Overlay[] = y < 0 && y > -6 ? [[1, 3, '·', LIGHT], [4, 3, '˙', LIGHT]] : []
-    return pixels(art, { r: '#E0607E', w: '#BFE3F2', f: '#B0435A', y: '#F2D04B', o: '#E8A33D' }, smoke)
+    return pixels(art, { r: '#E0607E', w: '#BFE3F2', f: '#D05A72', y: '#F2D04B', o: '#E8A33D' }, smoke)
   },
 }
 
@@ -524,7 +524,7 @@ const flower: Prop = {
   pose: i => (i >= 18 && i % 6 < 3 ? so('closed', 'one-up') : so('right')),
   render: i => {
     const stage = FLOWER_STAGES[Math.min(4, Math.floor(i / 4))] ?? []
-    return pixels(stage, { g: '#6CC24A', L: '#3C9D3C', s: '#8B5A2B', p: '#B57EDC', P: '#FF7EB6', Y: '#F2D04B' })
+    return pixels(stage, { g: '#6CC24A', L: '#3C9D3C', s: '#B07A45', p: '#B57EDC', P: '#FF7EB6', Y: '#F2D04B' })
   },
 }
 
@@ -551,7 +551,7 @@ const binoculars: Prop = {
     const y = i % 8 < 4 ? 2 : 3
     let art = stamp(EMPTY(), ['.BB..BB.', 'BBBBBBBB', 'BLLBBLLB', 'BLLBBLLB', '.BB..BB.'], 0, y - 1)
     art = stamp(art, ['W'], i % 2 ? 1 : 5, y + 1)
-    return pixels(art, { B: '#3A3F4B', L: '#7FB2E5', W: WHITE })
+    return pixels(art, { B: '#7A869E', L: '#7FB2E5', W: WHITE })
   },
 }
 
@@ -564,7 +564,7 @@ const cart: Prop = {
     const parcels: [string, number][] = [['p', 3], ['y', 5], ['g', 4]]
     parcels.slice(0, items).forEach(([c, x], k) => (art = stamp(art, [c + c, c + c], x - (k === 2 ? 1 : 0), k === 2 ? 1 : 2)))
     if (i % 2) art = stamp(art, ['...W..W.'], 0, 7)
-    return pixels(art, { h: GRAY, C: '#4FA3E0', c: '#2E6FA8', w: '#3A3F4B', W: GRAY, p: '#E0607E', y: '#F2D04B', g: '#6CC24A' })
+    return pixels(art, { h: GRAY, C: '#4FA3E0', c: '#2E6FA8', w: '#7A869E', W: GRAY, p: '#E0607E', y: '#F2D04B', g: '#6CC24A' })
   },
 }
 
@@ -575,7 +575,7 @@ const easel: Prop = {
   render: i => {
     let art = stamp(EMPTY(), ['WWWWWW..', 'W....W..', 'W....W..', 'W....W..', 'WWWWWW..', '.l..l...', 'l....l..'], 1, 0)
     const done = i % 16
-    const pal: Record<string, string> = { W: WHITE, l: WOOD, b: '#3A3F4B' }
+    const pal: Record<string, string> = { W: WHITE, l: WOOD, b: '#7A869E' }
     for (let k = 0; k < Math.min(12, done); k++) {
       const key = String.fromCharCode(97 + (k % 6))
       pal[key] = PAINT[k % 6] ?? WHITE
@@ -595,7 +595,7 @@ const run: Prop = {
     art = stamp(art, ['k'.repeat(8)], 0, 7)
     if (fill) art = stamp(art, ['g'.repeat(fill)], 0, 7)
     const done: Overlay[] = i % 14 >= 11 ? [[5, 1, '✓', '#3FBF5F']] : []
-    return pixels(art, { G: i % 2 ? '#3FBF5F' : '#2E9E4A', k: '#3A3F4B', g: '#3FBF5F' }, done)
+    return pixels(art, { G: i % 2 ? '#3FBF5F' : '#2E9E4A', k: '#7A869E', g: '#3FBF5F' }, done)
   },
 }
 
@@ -610,7 +610,7 @@ const trash: Prop = {
     art = stamp(art, open ? ['...L', '...L'] : ['LLLLL'], open ? 4 : 3, open ? 1 : 3)
     const ball = BALL_PATH[k]
     if (ball && k < 6) art = stamp(art, ['P'], ball[0], ball[1])
-    return pixels(art, { T: '#6B7A8F', t: '#55627A', L: '#4A5568', P: WHITE }, k === 6 ? [[5, 1, '·', LIGHT]] : [])
+    return pixels(art, { T: '#6B7A8F', t: '#55627A', L: '#8A97AE', P: WHITE }, k === 6 ? [[5, 1, '·', LIGHT]] : [])
   },
 }
 
@@ -622,7 +622,7 @@ const bulb: Prop = {
     const on = k === 4 || k >= 6
     const art = ['..YYY...', '.YYYYY..', '.YYWYY..', '..YYY...', '..ggg...', '..ggg...', '........', '........']
     const rays: Overlay[] = k >= 7 ? [[0, 0, '·', '#F2D04B'], [6, 0, '·', '#F2D04B'], [6, 2, '✦', '#F2D04B']] : []
-    return pixels(art, { Y: on ? '#F2D04B' : '#6A6A55', W: on ? WHITE : '#8A8A75', g: GRAY }, rays)
+    return pixels(art, { Y: on ? '#F2D04B' : '#9A9A80', W: on ? WHITE : '#8A8A75', g: GRAY }, rays)
   },
 }
 
@@ -647,7 +647,7 @@ const server: Prop = {
     let art = ['.....SSS', '.....SaS', '.....SSS', '.....SbS', '.....SSS', '.....SaS', '.....SSS', '.....SSS']
     if (k < 5) art = stamp(art, ['q'], k, 3)
     else art = stamp(art, ['r'], 9 - k, 5)
-    return pixels(art, { S: '#3A3F4B', a: i % 2 ? '#3FBF5F' : '#2A5A3A', b: i % 3 ? '#F2D04B' : '#5A5530', q: '#4FC1E9', r: '#3FBF5F' })
+    return pixels(art, { S: '#7A869E', a: i % 2 ? '#3FBF5F' : '#2A5A3A', b: i % 3 ? '#F2D04B' : '#5A5530', q: '#4FC1E9', r: '#3FBF5F' })
   },
 }
 
@@ -659,7 +659,7 @@ const phone: Prop = {
     let art = stamp(EMPTY(), ['KKKK', 'KssK', 'KssK', 'KssK', 'KssK', 'KKKK', '.KK.'], 2 + buzz, 1)
     if (i % 8 < 5) art = stamp(art, ['nn'], 3 + buzz, 2)
     if (i % 8 >= 3) art = stamp(art, ['ll', '..'], 3 + buzz, 4)
-    return pixels(art, { K: '#2A2E37', s: '#4FA3E0', n: '#E0607E', l: WHITE }, i % 8 < 2 ? [[7, 0, '!', '#E0607E']] : [])
+    return pixels(art, { K: '#8A93A8', s: '#4FA3E0', n: '#E0607E', l: WHITE }, i % 8 < 2 ? [[7, 0, '!', '#E0607E']] : [])
   },
 }
 
@@ -688,7 +688,7 @@ const bug: Prop = {
     if (k >= 8) return pixels(EMPTY(), {}, [[0, 3, '✦', '#F2D04B'], [1, 3, '·', LIGHT]])
     const x = 6 - k
     const art = stamp(EMPTY(), ['.ee', 'RkR', k % 2 ? 'l.l' : '.l.'], x, 5)
-    return pixels(art, { e: '#3A3F4B', R: '#D7263D', k: '#3A3F4B', l: '#3A3F4B' })
+    return pixels(art, { e: '#7A869E', R: '#D7263D', k: '#7A869E', l: '#7A869E' })
   },
 }
 
@@ -716,7 +716,7 @@ const clock: Prop = {
     art = stamp(art, ['h'], hx + shake, hy)
     art = stamp(art, ['h'], 3 + shake, 3)
     const bells: Overlay[] = ring ? [[7, 0, ')', LIGHT], [7, 1, ')', LIGHT]] : []
-    return pixels(art, { b: GOLD, C: '#E0607E', W: WHITE, h: '#2A2E37', l: '#2A2E37' }, bells)
+    return pixels(art, { b: GOLD, C: '#E0607E', W: WHITE, h: '#2A2E37', l: GRAY }, bells)
   },
 }
 
@@ -781,7 +781,7 @@ const clapper: Prop = {
     const shut = i % 6 >= 4
     let art = stamp(EMPTY(), ['KKKKKK', 'KwwwwK', 'KKKKKK', 'KwwKKK'], 1, 4)
     art = stamp(art, shut ? ['KWKWKW'] : ['...KWK', '.KWK..', 'KW....'], 1, shut ? 3 : 1)
-    return pixels(art, { K: '#2A2E37', W: WHITE, w: GRAY }, i % 6 === 4 ? [[7, 1, '✦', '#F2D04B']] : [])
+    return pixels(art, { K: '#8A93A8', W: WHITE, w: GRAY }, i % 6 === 4 ? [[7, 1, '✦', '#F2D04B']] : [])
   },
 }
 

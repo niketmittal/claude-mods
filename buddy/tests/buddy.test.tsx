@@ -280,3 +280,22 @@ test('the earring shows in every activity pose, arms up or not', async ($, on) =
     await ui.unmount()
   }
 })
+
+test('every hat and item stands out against the prompt bar', () => {
+  const lum = (c: string) => {
+    const v = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16) / 255).map(x => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * (v[0] ?? 0) + 0.7152 * (v[1] ?? 0) + 0.0722 * (v[2] ?? 0)
+  }
+  const ratio = (a: string, b: string) => {
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p)
+    return ((x ?? 0) + 0.05) / ((y ?? 0) + 0.05)
+  }
+  const BAR = '#373737'
+  // Dark detail drawn inside a light frame (a screen, barcode lines, clock hands) is meant to be dark.
+  const INSIDE = new Set(['#16232B', '#2A2E37'])
+  for (const o of OUTFITS) for (const [, k] of o.hat ?? []) if (k.startsWith('#')) expect([o.name, ratio(k, BAR) >= 2.2]).toEqual([o.name, true])
+  for (const [n, p] of Object.entries(PROPS))
+    for (let i = 0; i < 30; i++)
+      for (const c of p.render(i).flat())
+        if (c.fg && !c.bg && c.ch !== ' ' && !INSIDE.has(c.fg)) expect([n, c.fg, ratio(c.fg, BAR) >= 2.2]).toEqual([n, c.fg, true])
+})

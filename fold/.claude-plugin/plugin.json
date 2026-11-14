@@ -1,0 +1,8 @@
+{
+  "name": "fold",
+  "version": "0.1.0",
+  "description": "Fold long answers: a toggle at the end of each long reply shrinks it to its first lines; /fold and /unfold do them all.",
+  "types": "./types/index.d.ts",
+  "author": { "name": "Niket Mittal" },
+  "repository": "https://github.com/niketmittal/claude-mods"
+}

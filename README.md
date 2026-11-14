@@ -5,6 +5,7 @@ Claude Code mods by Niket.
 ```
 /plugin install buddy --marketplace niketmittal/claude-mods
 /plugin install eta --marketplace niketmittal/claude-mods
+/plugin install fold --marketplace niketmittal/claude-mods
 ```
 
 ## buddy
@@ -86,3 +87,7 @@ Type `hats`, `outfits` or `fashion` for a fashion show: Clawd twirls on the spot
 An accurate ETA for Claude's current work, measured from its progress, and nothing else on the line. Plus done pings and background `side:` tasks. [Details →](eta/)
 
 ![⏱ 3m 20s left counting down above the prompt while Claude works](eta/media/eta.gif)
+
+## fold
+
+Fold Claude's long answers: every answer of 10+ lines gets a `▾ fold` toggle that shrinks it to its first 3 lines (`▸ 27 more lines` opens it), and `/fold` and `/unfold` do every answer at once. [Details →](fold/)

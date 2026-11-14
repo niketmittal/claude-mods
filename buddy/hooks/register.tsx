@@ -544,18 +544,19 @@ const approve: Prop = {
   },
 }
 
-// "show", "open", "view": binoculars seen from the side, held to Clawd's eyes: two
-// barrels pointing out with glinting lenses, sweeping up and down, then a "!" as it
-// spots something.
-const binoculars: Prop = {
-  pose: i => so('right', 'one-up'),
+// "show", "open", "view": a treasure chest. Clawd lifts the lid, gold glows inside and
+// sparkles rise, Clawd throws its arms up, then the lid comes down again.
+const chest: Prop = {
+  pose: i => (i % 12 >= 4 && i % 12 < 10 ? so('open', 'up') : so('right', 'one-up')),
   render: i => {
     const k = i % 12
-    const y = [1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1][k] ?? 1
-    let art = stamp(EMPTY(), ['BBBBL', 'BBBBL', '.hh..', 'BBBBL', 'BBBBL'], 0, y)
-    art = stamp(art, ['W'], 4, y + (i % 2 ? 0 : 3))
-    const spotted: Overlay[] = k >= 9 ? [[7, 0, '!', '#F2D04B']] : k % 3 === 0 ? [[6, 1, '·', LIGHT]] : []
-    return pixels(art, { B: '#8A93A8', h: '#5A6070', L: '#4FC1E9', W: WHITE }, spotted)
+    const open = k >= 3 && k < 11
+    let art = stamp(EMPTY(), ['BBBBBBBB', 'BBBgBBBB', 'BBBBBBBB'], 0, 5)
+    art = open ? stamp(art, ['.LLLLLL.', 'LLLLLLLL', 'YYYYYYYY'], 0, 1) : stamp(art, ['.LLLLLL.', 'LLLgLLLL'], 0, 3)
+    if (open) art = stamp(art, ['.Y.YY.Y.'], 0, 4)
+    const rise = k - 4
+    const sparkles: Overlay[] = open && rise >= 0 ? [[1 + (rise % 3) * 2, 0, rise % 2 ? '✦' : '✧', '#F2D04B'], [6 - (rise % 2) * 2, 0, '·', '#FFF3B0']] : []
+    return pixels(art, { B: '#C8743E', L: '#A9603A', g: GOLD, Y: '#F2D04B' }, sparkles)
   },
 }
 
@@ -789,7 +790,7 @@ const clapper: Prop = {
   },
 }
 
-export const PROPS: Record<string, Prop> = { computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower, approve, binoculars, cart, easel, run, trash, bulb, coins, server, phone, plane, bug, scanner, clock, chart, gears, lock, box, clapper }
+export const PROPS: Record<string, Prop> = { computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower, approve, chest, cart, easel, run, trash, bulb, coins, server, phone, plane, bug, scanner, clock, chart, gears, lock, box, clapper }
 const PROP_NAMES = Object.keys(PROPS).filter(n => n !== 'umbrella')
 
 // ---------------------------------------------------------------------------
@@ -833,7 +834,7 @@ const TOPICS: [RegExp, Topic][] = [
   [/\b(remove|delete|clean|cleanup|clear|uninstall|drop)\b/, { prop: 'trash' }],
   [/\b(plan|idea|ideas|brainstorm|strategy|approach)\b/, { prop: 'bulb' }],
   [/\b(run|running|start|execute|restart|serve)\b/, { prop: 'run' }],
-  [/\b(show|open|view|display|preview)\b/, { prop: 'binoculars' }],
+  [/\b(show|open|view|display|preview|reveal|unbox)\b/, { prop: 'chest' }],
   [/\b(page|button|menu|theme|screen|ui|ux|layout|colou?r|icon)\b/, { prop: 'easel' }],
   [/\b(data|dashboard|chart|graph|analytics|report|metrics|stats)\b/, { prop: 'chart' }],
   [/\b(settings|config|configure|env|options?)\b/, { prop: 'gears' }],

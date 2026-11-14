@@ -2,9 +2,7 @@
 
 Know how long Claude's current work will take, so you can wait, step away, or start something else without disturbing the main thread.
 
-```
-⏱ 3m 20s left
-```
+![⏱ 3m 20s left counting down above the prompt while Claude works](media/eta.gif)
 
 Just the time, nothing else, and only once there is evidence for it.
 

@@ -62,6 +62,8 @@ Taken from Claude Code's own Clawd animations: jump, skip, spin, peekaboo, drop,
 
 Every prompt's Clawd wears something different: 27 headwear looks or none. Some topics pick it (christmas → santa, pirate → pirate, magic → wizard, cook → chef, ninja → ninja, learn → graduation cap, birthday → party hat). Whatever Clawd holds or wears never shares its color: the item keeps its natural color and Clawd picks one that stands apart.
 
+About a third of Clawds also wear a very small earring on one side: a gold or silver stud, a gold hoop or a pink drop.
+
 Type `hats`, `outfits` or `fashion` for a fashion show: Clawd twirls on the spot and models a new hat every second.
 
 ![Clawd twirling and modelling a new hat every second](buddy/media/fashion.gif)

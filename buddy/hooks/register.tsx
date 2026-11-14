@@ -165,7 +165,16 @@ export const draw = (k: Key): Frame => {
 // ---------------------------------------------------------------------------
 // Outfits: headwear picked per prompt, so each prompt's Clawd is recognisable.
 // The hat row sits above the head; hatAlt, if any, alternates with it.
-type Outfit = { name: string; hat?: Span[]; hatAlt?: Span[] }
+type Outfit = { name: string; hat?: Span[]; hatAlt?: Span[]; earring?: { ch: string; fg: string } }
+
+// A very small earring, one side only, worn by about a third of prompts' Clawds.
+export const EARRINGS = [
+  { ch: '·', fg: '#F2C744' }, // tiny gold stud
+  { ch: '·', fg: '#E6E6EE' }, // tiny silver stud
+  { ch: '°', fg: '#F2C744' }, // tiny gold hoop
+  { ch: '╷', fg: '#FF7EB6' }, // tiny pink drop
+]
+export const earringFor = (seed: number) => ((seed >>> 20) % 3 === 0 ? EARRINGS[(seed >>> 22) % EARRINGS.length] : undefined)
 
 const HAIR = '#8B5A2B'
 const BLONDE = '#F2D04B'
@@ -1286,6 +1295,10 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
   const rows = shift([hat ? pad(hat) : BLANK, ...s.frame.rows], lift + (swim ? 1 : 0), h)
   if (s.frame.poof && s.frame.offset > 0) rows[0] = [[POOF[s.frame.poof], 'n']]
   sprite(rows, s.x, 0, body)
+  // The earring hangs just right of the head, on the eye row, where nothing else is.
+  const eyeRow = rows.findIndex(r => r.some(([, kind]) => kind === 'e'))
+  const ear = g[eyeRow]?.[s.x + 8]
+  if (outfit.earring && eyeRow >= 0 && ear && ear.ch === ' ' && g[eyeRow]?.[s.x + 7]?.fg === body) put(s.x + 8, eyeRow, { ch: outfit.earring.ch, fg: apart(outfit.earring.fg, body) ?? outfit.earring.fg })
 
   const prop = s.prop
   prop?.rows.forEach((r, i) =>
@@ -1353,7 +1366,8 @@ export const register: Register = on => {
     const start = e.props.onScreen === null ? b : startBeat(e.requestId, e.props.text, b)
     const s = scene(range, b - start, seed >>> 8, topics)
     const dressed = topics.some(t => t.show) && s.extras.every(e => e.kind === 'mark') && s.prop === null ? showOutfit(b - start) : outfit
-    const grid = paint(s, range + W, dressed, body, b, seed)
+    const earring = earringFor(seed)
+    const grid = paint(s, range + W, earring ? { ...dressed, earring } : dressed, body, b, seed)
 
     const { Box, Text } = $.ui.resolve(e)
     return (

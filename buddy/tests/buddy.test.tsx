@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { COLORS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
+import { COLORS, EARRINGS, OUTFITS, PROPS, SHOW_BEATS, TRICKS, apart, earringFor, showOutfit, bodyFor, draw, front, paint, scene, startBeat, tiny, topicOf, topicsOf } from '../hooks/register'
 
 const text = (rows: ReturnType<typeof front>) => rows.map(row => row.map(([t]) => t).join(''))
 const show = (g: ReturnType<typeof paint>) => g.map(r => r.map(c => c.ch).join(''))
@@ -250,4 +250,17 @@ test('fashion show: Clawd stays put, twirls, and wears a new hat every few beats
   const hats = new Set(Array.from({ length: 10 }, (_, k) => showOutfit(k * SHOW_BEATS).name))
   expect(hats.size).toBe(10)
   expect(hats.has('plain')).toBe(false)
+})
+
+test('earrings: about a third of Clawds wear one, on the right side of the head only', () => {
+  const worn = Array.from({ length: 300 }, (_, k) => earringFor(k * 104729 * 7919)).filter(Boolean).length
+  expect(worn).toBeGreaterThan(60)
+  expect(worn).toBeLessThan(160)
+  const s = scene(30, 40, 1, { prop: 'think' })
+  const plain = paint({ ...s, frame: draw({ pose: 'default', offset: 0, x: 0 }) }, 39, { name: 'plain' }, '#D77757', 0, 1)
+  const withRing = paint({ ...s, frame: draw({ pose: 'default', offset: 0, x: 0 }) }, 39, { name: 'plain', earring: EARRINGS[0] }, '#D77757', 0, 1)
+  const diff = withRing.flatMap((row, y) => row.map((c, x) => [x, y, c.ch, plain[y]?.[x]?.ch] as const)).filter(([, , a, b]) => a !== b)
+  expect(diff).toHaveLength(1)
+  expect(diff[0]?.[0]).toBe(s.x + 8) // right of the head
+  expect(diff[0]?.[1]).toBe(1) // eye row
 })

@@ -35,7 +35,7 @@ test('Clawd walks the lane, stops for its activity with a prop, and stays in bou
   const seen = Array.from({ length: 400 }, (_, b) => scene(range, b, 7, { prop: 'computer' }))
   expect(Math.min(...seen.map(s => s.x))).toBe(0)
   expect(Math.max(...seen.map(s => s.x))).toBe(range)
-  expect(seen.some(s => s.prop?.[1]?.some(c => c.ch === '●'))).toBe(true)
+  expect(seen.some(s => s.prop !== null)).toBe(true)
   for (const s of seen) {
     expect(s.x).toBeGreaterThanOrEqual(0)
     expect(s.x).toBeLessThanOrEqual(range)
@@ -109,13 +109,13 @@ test('typed prompt row is highlighted and shows Clawd', async ($, on) => {
   }
 })
 
-test('hammer comes down on the nail and the nail sinks', () => {
-  const frames = Array.from({ length: 12 }, (_, i) => PROPS.hammer?.render(i).map(r => r.map(c => c.ch).join('')) ?? [])
-  expect(frames[0]?.[0]).toContain('▐█▌')
-  expect(frames[2]?.[1]).toContain('▐█▌')
-  expect(frames[2]?.[0]).toContain('✦')
-  expect(frames[0]?.[1]).toContain('┃')
-  expect(frames[4]?.[1]).toContain('╻')
+test('hammer: raised high, then down with a spark, and the nail gets shorter', () => {
+  const frame = (i: number) => PROPS.hammer?.render(i).map(r => r.map(c => c.ch).join('')) ?? []
+  const nailPixels = (i: number) => (PROPS.hammer?.render(i) ?? []).flat().filter(c => c.fg === '#9A9AA0' || c.bg === '#9A9AA0').length
+  expect(frame(0)[0]).toMatch(/█/) // head up top
+  expect(frame(3).join('')).toContain('✦')
+  expect(frame(0)[0]).not.toMatch(/✦/)
+  expect(nailPixels(0)).toBeGreaterThan(nailPixels(3))
 })
 
 test('crews: ducklings follow, catch throws a ball, class has a board and students', () => {
@@ -133,18 +133,18 @@ test('crews: ducklings follow, catch throws a ball, class has a board and studen
   expect(cls?.extras.filter(e => e.kind === 'tiny').length).toBeGreaterThan(1)
   const g = paint(cls ?? at(null, 0), 69, { name: 'plain' }, '#D77757', 0, 1).map(r => r.map(c => c.ch).join(''))
   expect(g.join('\n')).toContain('┌──────┐')
-  expect(g.join('\n')).toContain('▐▛█▜▌')
+  expect(g.join('\n')).toContain('▐▛█▛▌')
 })
 
 test('tiny Clawd is 5 wide', () => {
   for (const step of [0, 1]) for (const r of tiny(step)) expect([...r.map(([t]) => t).join('')].length).toBe(5)
 })
 
-test('every prop frame is 8 wide and 3 tall', () => {
+test('every prop frame is 8 wide and 4 tall', () => {
   for (const p of Object.values(PROPS))
     for (let i = 0; i < 30; i++) {
       const rows = p.render(i)
-      expect(rows).toHaveLength(3)
+      expect(rows).toHaveLength(4)
       for (const r of rows) expect(r).toHaveLength(8)
     }
 })

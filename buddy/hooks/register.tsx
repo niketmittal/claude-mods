@@ -19,7 +19,7 @@ type Span = [string, string]
 type Rows = Span[][]
 
 type Eyes = 'open' | 'left' | 'right' | 'closed' | 'wink'
-type Arms = 'down' | 'up' | 'one-up'
+type Arms = 'down' | 'up' | 'one-up' | 'type'
 type Feet = 'both' | 'left' | 'right'
 type Pose = { eyes: Eyes; arms: Arms; feet: Feet }
 
@@ -27,6 +27,7 @@ const ARMS: Record<Arms, { r1L: string; r1R: string; r2L: string; r2R: string }>
   down: { r1L: ' ▐', r1R: '', r2L: '▝▜', r2R: '█▀' },
   up: { r1L: '▗▟', r1R: '▄', r2L: ' ▜', r2R: '█▘' },
   'one-up': { r1L: ' ▐', r1R: '▄', r2L: '▝▜', r2R: '█▘' },
+  type: { r1L: ' ▐', r1R: '', r2L: '▝▜', r2R: '█▄' }, // hand pressed down on a keyboard
 }
 const EYES: Record<Eyes, Span[]> = {
   open: [['▛███▛█', 'e']],
@@ -54,7 +55,8 @@ const FACING: Record<string, [string, number, number][]> = {
   'left-12': [[' ▐▛███▜█ ', 2, 8], ['▝▜██████▀', 2, 7], [' ▝▝   ▝▝ ', 0, 0]],
 }
 const STRIDE = ['  ▘▘     ', '      ▘▘ ']
-const BLANK: Span[] = [[' '.repeat(W), 'n']]
+// Air: an empty row Clawd can jump or sink into; 'x' cells are see-through.
+const BLANK: Span[] = [[' '.repeat(W), 'x']]
 
 const pad = (spans: Span[]): Span[] => {
   const len = spans.reduce((n, [t]) => n + [...t].length, 0)
@@ -78,7 +80,7 @@ export const facing = (name: string, stride: number | null = null): Rows => {
 
 // A tiny Clawd (kids, students): a head with two eyes on little stepping legs.
 export const tiny = (step: number): Rows => [
-  [['▐', 'n'], ['▛', 'e'], ['█', 'n'], ['▜', 'e'], ['▌', 'n']],
+  [['▐', 'n'], ['▛', 'e'], ['█', 'n'], ['▛', 'e'], ['▌', 'n']], // eyes like the big Clawd's
   [[step % 2 ? ' ▘ ▝ ' : ' ▝ ▘ ', 'n']],
 ]
 
@@ -107,16 +109,17 @@ const Cr = (): Key[] => [...Se('default', 1, { offset: 1, poof: 'dot' }), ...Se(
 const NO: Key = { pose: 'default', offset: 0, x: 0 }
 const Ss: Key[] = [...Se(so('closed'), 1), NO]
 
-const jump = [...Cr(), ...Se('arms-up', 3), ...Se('default', 1), ...Cr(), ...Se('arms-up', 3), ...Se('default', 1)]
+const hop = (): Key[] => [...Cr(), ...Se('arms-up', 2, { offset: -1 }), ...Se('arms-up', 1), ...Se('default', 1)]
+const jump = [...hop(), ...hop()]
 export const TRICKS: Record<string, Key[]> = {
   jump,
   look: [...Se('look-right', 5), ...Se('look-left', 5), ...Se('default', 1)],
   celebrate: [...jump, ...Se('default', 3, { offset: 1 })],
   spin: [...Se('look-left', 2), ...Se('look-right', 2), ...Se('look-left', 2), ...Se('arms-up', 3), ...Se('default', 1)],
   skip: [
-    ...Se('arms-up', 2, { x: -6 }), ...Se('default', 1, { x: -6 }), ...Se('default', 1, { offset: 1, x: -6 }),
-    ...Se('arms-up', 2, { x: -3 }), ...Se('default', 1, { x: -3 }), ...Se('default', 1, { offset: 1, x: -3 }),
-    ...Se('arms-up', 2), ...Cr(), ...Se('default', 1),
+    ...Se('arms-up', 2, { x: -6, offset: -1 }), ...Se('default', 1, { x: -6 }), ...Se('default', 1, { offset: 1, x: -6 }),
+    ...Se('arms-up', 2, { x: -3, offset: -1 }), ...Se('default', 1, { x: -3 }), ...Se('default', 1, { offset: 1, x: -3 }),
+    ...Se('arms-up', 2, { offset: -1 }), ...Cr(), ...Se('default', 1),
   ],
   peekaboo: [
     ...Se('default', 1, { offset: 3 }), ...Se('default', 3, { offset: 2 }), ...Se('look-right', 3, { offset: 2 }),
@@ -133,7 +136,7 @@ export const TRICKS: Record<string, Key[]> = {
   ],
   sneeze: [...Se(so('closed', 'up'), 4), ...Se(so('closed'), 2, { offset: 1, poof: 'wave' }), ...Se(so('closed'), 2), ...Se('default', 2), ...Ss],
   turn: [...Mr(['right-12', 'right-30', 'right-55', 'right-75', 'edge']), ...Mr(['back-105', 'back-125', 'back-150', 'back', 'back']), ...Mr(['back-150', 'back-125', 'back-105', 'edge']), ...Mr(['left-75', 'left-55', 'left-30', 'left-12']), NO],
-  'coin-hop': [...Se('default', 2, { offset: 1 }), ...Se('arms-up', 1), ...Mr(['right-55', 'edge', 'back-125', 'back']), ...Mr(['back-125', 'edge', 'left-55']), ...Se('arms-up', 1), ...Cr(), NO],
+  'coin-hop': [...Se('default', 2, { offset: 1 }), ...Se('arms-up', 1, { offset: -1 }), ...[...Mr(['right-55', 'edge', 'back-125', 'back']), ...Mr(['back-125', 'edge', 'left-55'])].map(k => ({ ...k, offset: -1 })), ...Se('arms-up', 1), ...Cr(), NO],
   wave: [...[0, 1, 2, 3].flatMap(() => [...Se(so('open', 'one-up'), 2), ...Se('default', 1)]), NO],
   shiver: [...Array.from({ length: 10 }, (_, k) => Se(so('closed'), 1, { x: k % 2 })).flat(), ...Se('arms-up', 2), NO],
   moonwalk: [
@@ -142,7 +145,7 @@ export const TRICKS: Record<string, Key[]> = {
     ...[-5, -4, -3, -2, -1, 0].flatMap(x => Se({ facing: 'right-12' }, 1, { x })),
     NO,
   ],
-  bounce: [...[1, 0, 1, 0, 1, 0].flatMap(o => Se(o ? 'default' : 'arms-up', 2, { offset: o })), NO],
+  bounce: [...[1, -1, 1, -1, 1, -1].flatMap(o => Se(o > 0 ? 'default' : 'arms-up', 2, { offset: o })), NO],
   doze: [...Se(so('closed'), 4), ...Se(so('closed'), 4, { offset: 1 }), ...Se('arms-up', 2), ...Se('look-left', 2), ...Se('look-right', 2), NO],
   dab: [...Se(so('left', 'one-up'), 4), ...Se(so('right', 'up'), 4), NO],
 }
@@ -201,122 +204,286 @@ export const OUTFITS: Outfit[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Props: what the prompt is about decides what Clawd does with a thing beside it.
-// A prop draws 3 rows of PROP_W cells per beat of the activity; a space with no
-// background is see-through.
-type Prop = { render: (i: number) => Cell[][]; pose: (i: number) => Pose }
+// Props are pixel art, 8×8 pixels drawn two to a cell (▀ top, ▄ bottom), so a
+// prop is as crisp as Clawd. '.' is see-through. Overlays put a glyph (a note, a
+// spark, a ?) on a cell. A prop sits right at Clawd's hand; dx moves it (the
+// umbrella goes over Clawd's head).
+type Prop = { render: (i: number) => Cell[][]; pose: (i: number) => Pose; dx?: number }
+type Overlay = [number, number, string, string] // cell x, cell y, glyph, color
 
+const PX_H = 8
+
+// A row of cells from colored text runs, padded to the prop width (the chalkboard uses it).
 const cells = (...parts: [string, string?, string?][]): Cell[] => {
-  const row = parts.flatMap(([t, fg, bg]) => [...t].map(ch => ({ ch, fg, bg })))
+  const row = parts.flatMap(([t, fg, bg]) => [...t].map((ch): Cell => ({ ch, ...(fg ? { fg } : {}), ...(bg ? { bg } : {}) })))
   return [...row, ...Array.from({ length: Math.max(0, PROP_W - row.length) }, () => ({ ch: ' ' }))].slice(0, PROP_W)
 }
+const EMPTY = (): string[] => Array.from({ length: PX_H }, () => '.'.repeat(PROP_W))
 
-// A prop drawn from plain text frames, one color (plus per-glyph tints), optionally bobbing.
-const simple = (color: string, frames: string[][], pose: Prop['pose'], tint: Record<string, string> = {}, lift: number[] = []): Prop => ({
-  pose,
-  render: i => {
-    const rows = (frames[Math.floor(i / 2) % frames.length] ?? []).map(r => [...r].map(ch => ({ ch, fg: tint[ch] ?? color })))
-    const o = lift.length ? (lift[i % lift.length] ?? 0) : 0
-    const blank = () => cells([''])
-    const shifted = o >= 0 ? [...Array.from({ length: o }, blank), ...rows].slice(0, 3) : [...rows.slice(-o), ...Array.from({ length: -o }, blank)].slice(0, 3)
-    return shifted.map(r => cells(...r.map(c => [c.ch, c.fg] as [string, string])))
-  },
-})
+// Paint a piece of art onto a canvas at pixel (x, y); '.' in the piece leaves the canvas.
+const stamp = (canvas: string[], piece: string[], x = 0, y = 0): string[] => {
+  const out = canvas.map(r => [...r])
+  piece.forEach((row, dy) =>
+    [...row].forEach((ch, dx) => {
+      const r = out[y + dy]
+      if (ch !== '.' && r && x + dx >= 0 && x + dx < r.length) r[x + dx] = ch
+    }),
+  )
+  return out.map(r => r.join(''))
+}
+
+export const pixels = (art: string[], pal: Record<string, string>, overlay: Overlay[] = []): Cell[][] => {
+  const rows: Cell[][] = Array.from({ length: PX_H / 2 }, (_, r) =>
+    Array.from({ length: PROP_W }, (_, c): Cell => {
+      const t = pal[art[2 * r]?.[c] ?? '.']
+      const b = pal[art[2 * r + 1]?.[c] ?? '.']
+      if (!t && !b) return { ch: ' ' }
+      if (t && !b) return { ch: '▀', fg: t }
+      if (!t && b) return { ch: '▄', fg: b }
+      return t === b ? { ch: '█', fg: t } : { ch: '▀', fg: t, bg: b }
+    }),
+  )
+  for (const [x, y, ch, fg] of overlay) {
+    const row = rows[y]
+    const under = row?.[x]
+    if (!row || !under) continue
+    row[x] = under.ch === '█' ? { ch, fg, bg: under.fg } : { ch, fg }
+  }
+  return rows
+}
 
 const GRAY = '#9A9AA0'
-const SCREEN = '#16232B'
+const LIGHT = '#C8C8C8'
+const WHITE = '#F5F5F5'
 const WOOD = '#A0522D'
+const DARK = '#16232B'
+const GOLD = '#F2C744'
 
-export const PROPS: Record<string, Prop> = {
-  // A laptop: commits appear one by one on a dark screen as Clawd types; keys flash.
-  computer: {
-    pose: i => so('right', i % 2 ? 'one-up' : 'down'),
-    render: i => {
-      const typed = Math.floor(i / 2) % 9
-      const graph = '●─●─●─'.slice(0, Math.min(6, typed))
-      const cursor = i % 2 ? '_' : ' '
-      const screen = (graph + cursor).padEnd(6).slice(0, 6)
-      const key = 1 + ((i * 5) % 6)
-      return [
-        cells(['▗▄▄▄▄▄▄▖', GRAY]),
-        cells(['▐', GRAY], [screen, '#6CC24A', SCREEN], ['▌', GRAY]),
-        cells(['▀'.repeat(key), GRAY], ['▀', '#FFFFFF'], ['▀'.repeat(7 - key), GRAY]),
-      ]
-    },
+// A laptop on a desk: syntax-colored code types itself out line by line, a key lights
+// up under Clawd's hand, the cursor blinks; then the screen clears for the next bit.
+const CODE: [number, number, string][] = [
+  [0, 3, 'p'],
+  [1, 4, 'c'],
+  [1, 2, 'y'],
+]
+const computer: Prop = {
+  pose: i => so('right', i % 2 ? 'type' : 'down'),
+  render: i => {
+    let art = ['gggggggg', 'gssssssg', 'gssssssg', 'gssssssg', 'gggggggg', 'kkkkkkkk', '.d....d.', '.d....d.']
+    let typed = i % 13
+    let cursor: [number, number] = [1, 1]
+    CODE.forEach(([indent, len, color], line) => {
+      const n = Math.max(0, Math.min(len, typed))
+      typed -= len
+      if (n > 0) {
+        art = stamp(art, [color.repeat(n)], 1 + indent, 1 + line)
+        cursor = [1 + indent + n, 1 + line]
+      }
+    })
+    if (i % 2 === 0 && cursor[0] < 7) art = stamp(art, ['w'], cursor[0], cursor[1])
+    art = stamp(art, ['w'], (i * 3) % 8, 5)
+    return pixels(art, { g: GRAY, s: DARK, k: LIGHT, d: WOOD, w: WHITE, p: '#E0607E', c: '#4FC1E9', y: '#F2D04B' })
   },
-  // A hammer: raised in Clawd's hand, then down on a nail that sinks into the board, with a spark.
-  hammer: {
-    pose: i => (i % 4 < 2 ? so('right', 'one-up') : so('right', 'down')),
-    render: i => {
-      const up = i % 4 < 2
-      const nail = Math.floor(i / 4) % 3 // 0 tall, 1 short, 2 driven in
-      const board = cells(['  ', ''], ['▀▀▀▀▀▀', WOOD])
-      if (up)
-        return [
-          cells(['━━━━', WOOD], ['▐█▌', '#C8C8C8']),
-          nail === 2 ? cells(['']) : cells(['     ', ''], [nail === 0 ? '┃' : '╻', GRAY]),
-          board,
-        ]
-      return [cells(['       ', ''], [i % 4 === 2 ? '✦' : ' ', '#F2D04B']), cells(['━━━━', WOOD], ['▐█▌', '#C8C8C8']), board]
-    },
-  },
-  coffee: simple(
-    '#F5F5F5',
-    [['  ( (   ', ' ▗▄▄▄▖  ', ' ▐███▌◗ '], ['   ) )  ', ' ▗▄▄▄▖  ', ' ▐███▌◗ ']],
-    i => (i % 6 < 3 ? so('closed', 'one-up') : so('right')),
-    { '(': '#9A9AA0', ')': '#9A9AA0' },
-  ),
-  book: simple(
-    '#F5F5F5',
-    [['   ╱    ', '▐≡≡│≡≡▌ ', ' ▀▀▀▀▀  '], ['   │    ', '▐≡≡│≡≡▌ ', ' ▀▀▀▀▀  '], ['   ╲    ', '▐≡≡│≡≡▌ ', ' ▀▀▀▀▀  ']],
-    i => (i % 10 === 9 ? so('closed') : so('right')),
-    { '▐': '#A0522D', '▌': '#A0522D', '▀': '#A0522D', '│': '#A0522D' },
-  ),
-  guitar: simple(
-    '#A0522D',
-    [['♪       ', ' ▟█▙━━━╸', ' ▜█▛    '], ['    ♫   ', ' ▟█▙━━━╸', ' ▜█▛    ']],
-    i => so(i % 4 < 2 ? 'closed' : 'right', i % 2 ? 'one-up' : 'down'),
-    { '♪': '#B57EDC', '♫': '#B57EDC', '━': '#C8C8C8', '╸': '#C8C8C8' },
-  ),
-  umbrella: simple('#E0607E', [['▗▄███▄▖ ', '   ┃    ', '   ┛    ']], i => so(i % 6 < 3 ? 'open' : 'right', 'one-up'), { '┃': '#9A9AA0', '┛': '#9A9AA0' }),
-  balloon: simple('#E0607E', [[' ▄█▄    ', ' ▀█▀    ', '  ╎     ']], i => (i % 8 < 4 ? so('right', 'one-up') : so('open', 'up')), { '╎': '#9A9AA0' }, [0, 0, -1, -1, 0, 0, 1, 1]),
-  trophy: simple(
-    '#F2C744',
-    [['▐▀█▀▌   ', ' ▝█▘    ', ' ▀▀▀    '], ['▐▀█▀▌ ✦ ', ' ▝█▘    ', ' ▀▀▀  ✧ ']],
-    i => (i % 4 < 2 ? so('open', 'up') : so('right', 'one-up')),
-    { '✦': '#FFFFFF', '✧': '#FFFFFF' },
-  ),
-  camera: simple(
-    '#9A9AA0',
-    [['        ', '▗▟▄▄▄▖  ', '▐█●██▌  '], [' ✦ ✦ ✦  ', '▗▟▄▄▄▖  ', '▐█●██▌  ']],
-    i => (i % 4 < 2 ? so('wink') : so('right', 'one-up')),
-    { '●': '#16232B', '✦': '#FFFFFF' },
-  ),
-  pan: simple(
-    '#9A9AA0',
-    [['        ', '        ', '▀▀▀▀━━━ '], ['  ▄▄    ', '        ', '▀▀▀▀━━━ '], ['        ', '  ▄▄    ', '▀▀▀▀━━━ ']],
-    i => so('right', i % 3 === 1 ? 'up' : 'one-up'),
-    { '▄': '#E8A33D', '━': '#A0522D' },
-  ),
-  magnifier: simple('#E8A33D', [['▗▀▖     ', '▝▄▘     ', '  ▚     '], [' ▗▀▖    ', ' ▝▄▘    ', '   ▚    ']], i => so(i % 4 < 2 ? 'right' : 'open')),
-  rocket: simple(
-    '#E0607E',
-    [[' ▗▖     ', '▐██▌    ', ' ▾▾     '], [' ▗▖     ', '▐██▌    ', ' ▿▿     ']],
-    i => (i % 13 >= 6 && i % 13 < 10 ? so('open', 'up') : so('right')),
-    { '▾': '#F2D04B', '▿': '#E8A33D' },
-    [0, 0, 0, 0, 0, 0, -1, -2, -3, -3, 3, 2, 1],
-  ),
-  think: simple('#B0B0B0', [['( ? )   ', '°       ', '        '], ['( ‥ )   ', '°       ', '        ']], i => so(i % 6 < 3 ? 'right' : 'left')),
-  heart: simple('#E0607E', [['  ♥     ', '        ', '        '], [' ♥  ♥   ', '        ', '        ']], i => (i % 6 === 2 ? so('wink') : so('right')), {}, [2, 1, 0, 0, 1, 2]),
-  music: simple('#B57EDC', [['♪       ', '   ♫    ', '        '], ['   ♫    ', '♪       ', '        ']], i => so('open', i % 4 < 2 ? 'up' : 'down', i % 2 ? 'left' : 'right')),
-  sleep: simple('#7FB2E5', [['   z    ', '  z     ', '        '], [' Z      ', '   z    ', '  z     ']], () => so('closed')),
-  flower: simple(
-    '#6CC24A',
-    [['        ', '  .     ', '  ┃     '], ['  o     ', '  ┃     ', '  ┃     '], ['  ❀     ', ' ╲┃     ', '  ┃     '], ['  ✿     ', ' ╲┃╱    ', '  ┃     ']],
-    i => (i % 8 === 7 ? so('closed', 'one-up') : so('right', 'one-up')),
-    { '✿': PINK, '❀': PINK, o: '#F2D04B' },
-  ),
 }
+
+// A hammer: raised high, swung, then down on a nail that sinks into the board with a spark.
+const HAMMER_UP = ['...HHH..', '...HHH..', '..w.....', 'ww......', '........']
+const HAMMER_MID = ['........', '........', '....HH..', 'wwwwHH..', '....HH..']
+const HAMMER_HIT = ['........', '........', '........', '........', 'wwwwHH..', '....HH..']
+const hammer: Prop = {
+  pose: i => (i % 5 < 3 ? so('right', 'one-up') : so('right', 'down')),
+  render: i => {
+    const phase = i % 5
+    const before = Math.floor(i / 5) % 2 ? 1 : 2
+    const nail = phase >= 3 ? before - 1 : before
+    let art = stamp(EMPTY(), ['..BBBBBB'], 0, 7)
+    for (let k = 0; k < nail; k++) art = stamp(art, ['n'], 4, 6 - k)
+    if (nail === 0) art = stamp(art, ['N'], 4, 7)
+    art = stamp(art, phase < 2 ? HAMMER_UP : phase === 2 ? HAMMER_MID : HAMMER_HIT)
+    const spark: Overlay[] = phase === 3 ? [[6, 2, '✦', '#F2D04B'], [7, 1, '·', '#F2D04B'], [3, 3, '·', LIGHT]] : []
+    return pixels(art, { H: LIGHT, w: WOOD, n: GRAY, N: LIGHT, B: '#8B5A2B' }, spark)
+  },
+}
+
+// A mug of coffee: steam curls up; every few beats Clawd lifts it and sips, eyes closed.
+const coffee: Prop = {
+  pose: i => (i % 8 >= 4 && i % 8 < 7 ? so('closed', 'one-up') : so('right')),
+  render: i => {
+    const sip = i % 8 >= 4 && i % 8 < 7
+    const mug = ['WccccW..', 'WWWWWWW.', 'WWWWWW.W', '.WWWWWW.']
+    let art = stamp(EMPTY(), mug, 0, sip ? 2 : 4)
+    if (!sip) art = stamp(art, i % 2 ? ['..s..s..', '.s..s...', '..s..s..'] : ['.s..s...', '..s..s..', '.s..s...'], 0, 0)
+    return pixels(art, { W: WHITE, c: '#6B3E26', s: GRAY })
+  },
+}
+
+// An open book: Clawd reads; every few beats a page lifts, stands up and turns over.
+const PAGE_FLIP = [[], [[5, 3], [6, 3]], [[3, 1], [3, 2], [3, 3]], [[1, 3], [2, 3]]]
+const book: Prop = {
+  pose: i => (i % 12 === 11 ? so('closed') : so('right')),
+  render: i => {
+    let art = stamp(EMPTY(), ['PPPbPPP.', 'LLLbLLL.', 'PPPbPPP.', 'BBBBBBB.'], 0, 4)
+    for (const [x, y] of PAGE_FLIP[i % 6 < 4 ? i % 6 : 0] ?? []) art = stamp(art, ['P'], x, y)
+    return pixels(art, { P: WHITE, L: GRAY, b: WOOD, B: WOOD })
+  },
+}
+
+// A guitar held at Clawd's side: it strums, notes drift up and away.
+const guitar: Prop = {
+  pose: i => so(i % 4 < 2 ? 'closed' : 'right', i % 2 ? 'one-up' : 'down'),
+  render: i => {
+    const art = ['......hh', '.....n..', '....n...', '.BBn....', 'BBBB....', 'BBoB....', 'BBBB....', '.BB.....']
+    const notes: Overlay[] = [0, 1].flatMap((k): Overlay[] => {
+      const ph = (i + k * 3) % 6
+      const y = 2 - Math.floor(ph / 2)
+      return y >= 0 ? [[5 + k + (ph % 2), y, k ? '♫' : '♪', '#B57EDC']] : []
+    })
+    return pixels(art, { h: LIGHT, n: LIGHT, B: WOOD, o: '#3B2314' }, notes)
+  },
+}
+
+// A trophy, held up and gleaming, sparkles winking around it.
+const trophy: Prop = {
+  pose: i => (i % 4 < 2 ? so('open', 'up') : so('wink', 'one-up')),
+  render: i => {
+    let art = stamp(EMPTY(), ['.GGGGGG.', 'GGGGGGGG', 'G.GGGG.G', '.GGGGGG.', '...GG...', '...GG...', '.GGGGGG.'], 0, i % 4 < 2 ? 0 : 1)
+    art = stamp(art, ['w'], 2 + (i % 4), i % 4 < 2 ? 1 : 2)
+    const sparkle: Overlay[] = i % 2 ? [[0, 0, '✦', WHITE], [7, 2, '✧', WHITE]] : [[7, 0, '✧', WHITE], [0, 2, '✦', WHITE]]
+    return pixels(art, { G: GOLD, w: WHITE }, sparkle)
+  },
+}
+
+// A camera: Clawd poses with a wink, then the flash goes off.
+const camera: Prop = {
+  pose: i => (i % 6 < 3 ? so('right', 'one-up') : so('wink', 'down')),
+  render: i => {
+    const flash = i % 6 === 4
+    const art = stamp(EMPTY(), [flash ? '.WW.....' : '.ff.....', 'GGGGGGGG', 'GGlllGrG', 'GlDwDlGG', 'GGlllGGG', 'GGGGGGGG'], 0, 2)
+    const burst: Overlay[] = flash ? [[0, 0, '✦', WHITE], [2, 0, '✦', WHITE], [1, 0, '·', WHITE], [3, 0, '·', WHITE]] : []
+    return pixels(art, { G: GRAY, f: LIGHT, W: WHITE, l: LIGHT, D: DARK, w: WHITE, r: '#E0607E' }, burst)
+  },
+}
+
+// A frying pan: the pancake goes up, turns edge-on at the top, and lands back.
+const PANCAKE: [number, string[]][] = [[5, ['CCC']], [5, ['CCC']], [3, ['CCC']], [1, ['C', 'C']], [0, ['C', 'C']], [2, ['CCC']], [4, ['CCC']], [5, ['CCC']]]
+const pan: Prop = {
+  pose: i => so('right', i % 8 >= 2 && i % 8 < 5 ? 'one-up' : 'down'),
+  render: i => {
+    let art = stamp(EMPTY(), ['w.......', '.w.K...K', '..wKKKKK'], 0, 5)
+    const [y, cake] = PANCAKE[i % 8] ?? [5, ['CCC']]
+    art = stamp(art, cake, cake[0]?.length === 1 ? 5 : 4, y)
+    return pixels(art, { w: WOOD, K: GRAY, C: '#E8A33D' })
+  },
+}
+
+// A balloon on a string, bobbing above Clawd's hand.
+const balloon: Prop = {
+  pose: i => (i % 8 < 5 ? so('right', 'one-up') : so('open', 'up')),
+  render: i => {
+    const bob = i % 4 < 2 ? 0 : 1
+    const art = stamp(EMPTY(), ['..RRR...', '.RWRRR..', '.RRRRR..', '..RRR...', '...R....', i % 2 ? '..s.....' : '...s....', '.s......'], 0, bob)
+    return pixels(art, { R: '#E0607E', W: WHITE, s: LIGHT })
+  },
+}
+
+// An umbrella held over Clawd's head.
+const umbrella: Prop = {
+  dx: -7,
+  pose: i => so(i % 8 < 4 ? 'open' : 'right'),
+  render: () => pixels(['.RRWWRR.', 'RRRWWRRR', '.......h', '.......h', '.......h', '.......h', '.......h', '......h.'], { R: '#E0607E', W: WHITE, h: GRAY }),
+}
+
+// A magnifying glass sweeping left and right, its glint moving.
+const magnifier: Prop = {
+  pose: i => so(i % 6 < 3 ? 'right' : 'open'),
+  render: i => {
+    const sweep = [0, 1, 2, 1][Math.floor(i / 2) % 4] ?? 0
+    const lens = ['...rrrr.', '..rggWgr', '..rggggr', '..rggggr', '...rrrr.']
+    let art = stamp(EMPTY(), lens, sweep - 1, 0)
+    art = stamp(art, ['h', 'h'].map((_, k) => '.'.repeat(1 - k) + 'h'), 0, 5)
+    return pixels(art, { r: '#E8A33D', g: '#BFE3F2', W: WHITE, h: WOOD })
+  },
+}
+
+// A rocket: it idles, launches out of the top, then comes back down to land.
+const ROCKET = ['...r....', '..rrr...', '..rwr...', '..rrr...', '..rrr...', '.frrrf..', '.f.y.f..', '...o....']
+const ROCKET_Y = [0, 0, 0, 0, 0, 0, -1, -2, -3, -5, -7, -9, -9, -9, -9, -9, -8, -6, -4, -2, -1, 0, 0, 0, 0, 0]
+const rocket: Prop = {
+  pose: i => (i >= 6 && i < 16 ? so('open', 'up') : so('right')),
+  render: i => {
+    const y = ROCKET_Y[i % ROCKET_Y.length] ?? 0
+    const art = stamp(EMPTY(), ROCKET.map(r => (i % 2 ? r : r.replace('y', 'o').replace(/o(?=\.\.\.\.)/, 'y'))), 0, y)
+    const smoke: Overlay[] = y < 0 && y > -6 ? [[1, 3, '·', LIGHT], [4, 3, '˙', LIGHT]] : []
+    return pixels(art, { r: '#E0607E', w: '#BFE3F2', f: '#B0435A', y: '#F2D04B', o: '#E8A33D' }, smoke)
+  },
+}
+
+// Hearts float up past Clawd.
+const heart: Prop = {
+  pose: i => (i % 6 === 2 ? so('wink') : so('right')),
+  render: i => {
+    let art = stamp(EMPTY(), ['.H.H.', 'HHHHH', '.HHH.', '..H..'], 1, 7 - (i % 12))
+    art = stamp(art, ['h.h', 'hhh', '.h.'], 5, 7 - ((i + 6) % 12))
+    return pixels(art, { H: '#E0607E', h: '#FF7EB6' })
+  },
+}
+
+// Music notes rise while Clawd dances.
+const music: Prop = {
+  pose: i => so('open', i % 4 < 2 ? 'up' : 'down', i % 2 ? 'left' : 'right'),
+  render: i =>
+    pixels(
+      EMPTY(),
+      {},
+      [0, 1, 2].flatMap((k): Overlay[] => {
+        const ph = (i + k * 3) % 8
+        const y = 3 - Math.floor(ph / 2)
+        return [[1 + k * 2 + (ph % 2), y, k % 2 ? '♫' : '♪', ['#B57EDC', '#FF7EB6', '#4FC1E9'][k] ?? '#B57EDC']]
+      }),
+    ),
+}
+
+// Z's drift up and grow while Clawd sleeps.
+const sleep: Prop = {
+  pose: () => so('closed'),
+  render: i =>
+    pixels(
+      EMPTY(),
+      {},
+      [0, 1, 2].flatMap((k): Overlay[] => {
+        const ph = (i + k * 4) % 12
+        const y = 3 - Math.floor(ph / 3)
+        return [[1 + Math.floor(ph / 3) + k, y, y <= 1 ? 'Z' : 'z', '#7FB2E5']]
+      }),
+    ),
+}
+
+// A thought bubble: a question, thinking dots, then an idea (and arms up).
+const think: Prop = {
+  pose: i => (i % 16 >= 12 ? so('open', 'up') : so(i % 8 < 4 ? 'right' : 'left')),
+  render: i => {
+    const glyph = i % 16 < 6 ? '?' : i % 16 < 12 ? '…' : '!'
+    return pixels(['...WWWW.', '..WWWWWW', '..WWWWWW', '...WWWW.', '.W......', 'W.......', '........', '........'], { W: '#E8E8E8' }, [[4, 1, glyph, '#333333']])
+  },
+}
+
+// A flower grows from a sprout to a bud to a bloom, then Clawd stops to smell it.
+const FLOWER_STAGES = [
+  ['........', '........', '........', '........', '........', '........', '....g...', '..ssss..'],
+  ['........', '........', '........', '........', '....g...', '...Lg...', '....g...', '..ssss..'],
+  ['........', '........', '....p...', '....g...', '...Lg...', '....gL..', '....g...', '..ssss..'],
+  ['........', '...P.P..', '...PYP..', '....g...', '...Lg...', '....gL..', '....g...', '..ssss..'],
+  ['...PPP..', '..PPYPP.', '...PPP..', '....g...', '...Lg...', '....gL..', '....g...', '..ssss..'],
+]
+const flower: Prop = {
+  pose: i => (i >= 18 && i % 6 < 3 ? so('closed', 'one-up') : so('right')),
+  render: i => {
+    const stage = FLOWER_STAGES[Math.min(4, Math.floor(i / 4))] ?? []
+    return pixels(stage, { g: '#6CC24A', L: '#3C9D3C', s: '#8B5A2B', p: '#B57EDC', P: '#FF7EB6', Y: '#F2D04B' })
+  },
+}
+
+export const PROPS: Record<string, Prop> = { computer, hammer, coffee, book, guitar, trophy, camera, pan, balloon, umbrella, magnifier, rocket, heart, music, sleep, think, flower }
 const PROP_NAMES = ['computer', 'hammer', 'magnifier', 'rocket', 'heart', 'music', 'sleep', 'flower', 'coffee', 'book', 'guitar', 'balloon', 'trophy', 'camera', 'pan']
 
 // ---------------------------------------------------------------------------
@@ -384,7 +551,7 @@ export type Extra =
   | { kind: 'cells'; x: number; rows: Cell[][] }
   | { kind: 'ball'; x: number; y: number }
 
-export type Scene = { x: number; frame: Frame; prop: Cell[][] | null; scene: string | null; extras: Extra[] }
+export type Scene = { x: number; frame: Frame; prop: { rows: Cell[][]; dx: number } | null; scene: string | null; extras: Extra[] }
 
 const TINY_W = 5
 const GAP = 8 // the throw between two Clawds playing catch
@@ -393,7 +560,13 @@ const WORDS = ['hello', 'a+b=c', '</>', 'claude', '2+2=4', 'git', 'λx.x', 'O(n)
 // A classroom board: chalk writing itself out on green.
 const board = (word: string, i: number): Cell[][] => {
   const shown = word.slice(0, Math.floor(i / 3)).padEnd(6).slice(0, 6)
-  return [cells(['┌──────┐', '#A0522D']), cells(['│', '#A0522D'], [shown, '#F5F5F5', '#1F3B2D'], ['│', '#A0522D']), cells(['└┬────┬┘', '#A0522D'])]
+  const tick = i >= 3 * word.length + 3 ? '  ✓   ' : '      '
+  return [
+    cells(['┌──────┐', WOOD]),
+    cells(['│', WOOD], [shown, WHITE, '#1F3B2D'], ['│', WOOD]),
+    cells(['│', WOOD], [tick, '#6CC24A', '#1F3B2D'], ['│', WOOD]),
+    cells(['└┬────┬┘', WOOD]),
+  ]
 }
 
 export const scene = (range: number, b: number, seed: number, topic: Topic | null): Scene => {
@@ -463,7 +636,7 @@ export const scene = (range: number, b: number, seed: number, topic: Topic | nul
     }
     const frame: Frame = { rows: front(prop?.pose(i) ?? so('open')), offset: 0 }
     if (!room || !prop) return { ...base, frame, prop: null }
-    return { ...base, frame, prop: prop.render(i) }
+    return { ...base, frame, prop: { rows: prop.render(i), dx: prop.dx ?? 0 } }
   }
   const doTrick = (i: number, x: number): Scene => {
     const k = trick[i] ?? NO
@@ -513,7 +686,7 @@ const FLOWER_COLORS = [PINK, BLONDE, '#B57EDC']
 // The row as a grid of cells: the scene, then Clawd dressed in its outfit, then
 // the prop, then anything in front (water).
 export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: number, seed: number): Cell[][] => {
-  const h = outfit.hat ? 4 : 3
+  const h = 4
   const g: Cell[][] = Array.from({ length: h }, () => Array.from({ length: width }, () => ({ ch: ' ' })))
   const put = (x: number, y: number, cell: Cell) => {
     const row = g[y]
@@ -619,6 +792,10 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
       const y = top + dy
       for (const [text, kind] of spans)
         for (const ch of text) {
+          if (kind === 'x') {
+            x++
+            continue
+          }
           if (kind === 'e' && ch !== '█') put(x, y, { ch, fg: color, bg: EYE_BG })
           else if (kind === 'l') put(x, y, { ch, fg: EYE_BG, bg: color })
           else if (ch !== ' ') put(x, y, { ch, fg: kind.startsWith('#') ? kind : color })
@@ -631,6 +808,7 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
   // Friends and tiny Clawds stand behind the main one.
   for (const e of s.extras) {
     if (e.kind === 'tiny') {
+      if (e.x < 0 || e.x + TINY_W > width) continue // no half-drawn kids at the edges
       const top = h - 2 - (e.hop ? 1 : 0)
       sprite(tiny(e.step), e.x, top, crewColor(e.color))
       if (e.raise) {
@@ -638,19 +816,22 @@ export const paint = (s: Scene, width: number, outfit: Outfit, body: string, b: 
         put(e.x + 5, top - 1, { ch: '?', fg: '#F2D04B' })
       }
     } else if (e.kind === 'friend') sprite(front(e.pose), e.x, h - 3, crewColor(4))
-    else if (e.kind === 'cells') e.rows.forEach((r, i) => r.forEach((c, j) => put(e.x + j, h - 3 + i, c)))
+    else if (e.kind === 'cells') e.rows.forEach((r, i) => r.forEach((c, j) => put(e.x + j, h - e.rows.length + i, c)))
   }
 
   // Clawd, with the hat riding on its head through every sink and hop.
   const swim = s.scene === 'swim'
   const hat = outfit.hatAlt && (b >> 1) % 2 ? outfit.hatAlt : outfit.hat
-  const rows = shift(hat ? [pad(hat), ...s.frame.rows] : s.frame.rows, s.frame.offset + (swim ? 1 : 0), h)
+  // A hat keeps its row: a small hop (offset -1) stays on the ground rather than lose it.
+  const lift = hat && s.frame.offset === -1 ? 0 : s.frame.offset
+  const rows = shift([hat ? pad(hat) : BLANK, ...s.frame.rows], lift + (swim ? 1 : 0), h)
   if (s.frame.poof && s.frame.offset > 0) rows[0] = [[POOF[s.frame.poof], 'n']]
   sprite(rows, s.x, 0, body)
 
-  s.prop?.forEach((r, i) =>
+  const prop = s.prop
+  prop?.rows.forEach((r, i) =>
     r.forEach((c, j) => {
-      put(s.x + W + 1 + j, h - 3 + i, c)
+      if (c.ch !== ' ' || c.bg) put(s.x + W + prop.dx + j, i, c)
     }),
   )
   for (const e of s.extras) if (e.kind === 'ball') put(e.x, Math.max(0, h - 2 - e.y), { ch: '●', fg: '#E0607E' })

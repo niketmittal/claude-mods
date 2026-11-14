@@ -54,7 +54,7 @@ Clawd, the block mascot from Claude Code's welcome screen, walks back and forth 
 ## Notes
 
 - Needs a Claude Code build with mods support. It does not load where an organization policy sets `allowManagedHooksOnly`.
-- Each prompt row is three lines tall, Clawd's height.
+- Each prompt row is four lines tall: Clawd plus a row of air for jumps, hats, thought bubbles and the ball.
 - Terminal only for now. Only prompts you typed get a buddy; task notifications and other messages keep the default look.
 - In the terminal's normal (non-fullscreen) view, prompts that have scrolled into the history may stop dancing. Fullscreen animates every prompt on screen.
 

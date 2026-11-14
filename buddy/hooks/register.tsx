@@ -544,14 +544,18 @@ const approve: Prop = {
   },
 }
 
-// "show", "open", "view": binoculars at Clawd's eyes, sweeping, glints moving.
+// "show", "open", "view": binoculars seen from the side, held to Clawd's eyes: two
+// barrels pointing out with glinting lenses, sweeping up and down, then a "!" as it
+// spots something.
 const binoculars: Prop = {
-  pose: i => so(i % 8 < 4 ? 'right' : 'left'),
+  pose: i => so('right', 'one-up'),
   render: i => {
-    const y = i % 8 < 4 ? 2 : 3
-    let art = stamp(EMPTY(), ['.BB..BB.', 'BBBBBBBB', 'BLLBBLLB', 'BLLBBLLB', '.BB..BB.'], 0, y - 1)
-    art = stamp(art, ['W'], i % 2 ? 1 : 5, y + 1)
-    return pixels(art, { B: '#7A869E', L: '#7FB2E5', W: WHITE })
+    const k = i % 12
+    const y = [1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1][k] ?? 1
+    let art = stamp(EMPTY(), ['BBBBL', 'BBBBL', '.hh..', 'BBBBL', 'BBBBL'], 0, y)
+    art = stamp(art, ['W'], 4, y + (i % 2 ? 0 : 3))
+    const spotted: Overlay[] = k >= 9 ? [[7, 0, '!', '#F2D04B']] : k % 3 === 0 ? [[6, 1, '·', LIGHT]] : []
+    return pixels(art, { B: '#8A93A8', h: '#5A6070', L: '#4FC1E9', W: WHITE }, spotted)
   },
 }
 
@@ -829,7 +833,7 @@ const TOPICS: [RegExp, Topic][] = [
   [/\b(remove|delete|clean|cleanup|clear|uninstall|drop)\b/, { prop: 'trash' }],
   [/\b(plan|idea|ideas|brainstorm|strategy|approach)\b/, { prop: 'bulb' }],
   [/\b(run|running|start|execute|restart|serve)\b/, { prop: 'run' }],
-  [/\b(show|see|open|view|display|preview)\b/, { prop: 'binoculars' }],
+  [/\b(show|open|view|display|preview)\b/, { prop: 'binoculars' }],
   [/\b(page|button|menu|theme|screen|ui|ux|layout|colou?r|icon)\b/, { prop: 'easel' }],
   [/\b(data|dashboard|chart|graph|analytics|report|metrics|stats)\b/, { prop: 'chart' }],
   [/\b(settings|config|configure|env|options?)\b/, { prop: 'gears' }],

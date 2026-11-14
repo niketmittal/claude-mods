@@ -22,7 +22,7 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 | ![](media/sleep.gif)<br>`sleep`, `later`, `tired`: naps under the moon | ![](media/underwater.gif)<br>`fish`, `dive`: bubbles, fish and seaweed |
 | ![](media/city.gif)<br>`docker`, `k8s`, `server`: laptop before a city skyline | ![](media/sunny.gif)<br>`summer`, `vacation`: sombrero in the sun |
 | ![](media/ninja.gif)<br>`ninja`, `secret`: ninja at night | ![](media/wizard.gif)<br>`magic`, `wizard`, `spell`: wizard among the stars |
-| ![](media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | ![](media/binoculars.gif)<br>`show`, `open`, `view`: looks through binoculars |
+| ![](media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | ![](media/binoculars.gif)<br>`show`, `open`, `view`: scans with binoculars, then spots something |
 | ![](media/cart.gif)<br>`shop`, `order`, `customer`: a cart fills with parcels | ![](media/easel.gif)<br>`page`, `button`, `theme`, `ui`: paints a canvas |
 | ![](media/run.gif)<br>`run`, `start`, `execute`: play, progress bar, done | ![](media/trash.gif)<br>`remove`, `delete`, `clean`: tosses paper in the bin |
 | ![](media/bulb.gif)<br>`plan`, `idea`, `brainstorm`: a light bulb flickers on | ![](media/coins.gif)<br>`payment`, `pricing`, `money`: coins stack up |

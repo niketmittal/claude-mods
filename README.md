@@ -32,7 +32,7 @@ The moment you send a prompt, its Clawd starts on the activity that fits it. The
 | ![](buddy/media/sleep.gif)<br>`sleep`, `later`, `tired`: naps under the moon | ![](buddy/media/underwater.gif)<br>`fish`, `dive`: bubbles, fish and seaweed |
 | ![](buddy/media/city.gif)<br>`docker`, `k8s`, `server`: laptop before a city skyline | ![](buddy/media/sunny.gif)<br>`summer`, `vacation`: sombrero in the sun |
 | ![](buddy/media/ninja.gif)<br>`ninja`, `secret`: ninja at night | ![](buddy/media/wizard.gif)<br>`magic`, `wizard`, `spell`: wizard among the stars |
-| ![](buddy/media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | ![](buddy/media/binoculars.gif)<br>`show`, `open`, `view`: looks through binoculars |
+| ![](buddy/media/approve.gif)<br>`yes`, `ok`, `go`: a check mark draws itself | ![](buddy/media/binoculars.gif)<br>`show`, `open`, `view`: scans with binoculars, then spots something |
 | ![](buddy/media/cart.gif)<br>`shop`, `order`, `customer`: a cart fills with parcels | ![](buddy/media/easel.gif)<br>`page`, `button`, `theme`, `ui`: paints a canvas |
 | ![](buddy/media/run.gif)<br>`run`, `start`, `execute`: play, progress bar, done | ![](buddy/media/trash.gif)<br>`remove`, `delete`, `clean`: tosses paper in the bin |
 | ![](buddy/media/bulb.gif)<br>`plan`, `idea`, `brainstorm`: a light bulb flickers on | ![](buddy/media/coins.gif)<br>`payment`, `pricing`, `money`: coins stack up |
